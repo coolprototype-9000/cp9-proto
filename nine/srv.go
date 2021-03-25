@@ -29,12 +29,17 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 			for id == 0 {
 				id = rand.Uint64()
 			}
-
 			resp := &FCall{
 				MsgType: RVersion,
 				Tag:     tf.Tag,
-				Version: nineVersion,
+				Version: NineVersion,
 			}
+
+			if tf.Version != NineVersion {
+				resp.Version = "unknown"
+				id = 0
+			}
+
 			go Write9P(s.conn, resp)
 			continue
 		} else if id == 0 {

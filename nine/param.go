@@ -34,7 +34,8 @@ const (
 	RWStat
 )
 
-const nineVersion = "9P2000.cp9.1"
+// NineVersion is our own unique version string
+const NineVersion = "9P2000.cp9.1"
 
 // Byte flags
 const (

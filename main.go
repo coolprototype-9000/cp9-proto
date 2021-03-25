@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/coolprototype-9000/client"
+	"github.com/coolprototype-9000/cp9-proto/client"
 	"github.com/coolprototype-9000/cp9-proto/nine"
 	"github.com/coolprototype-9000/cp9-proto/ramfs"
 )

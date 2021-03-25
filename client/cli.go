@@ -22,7 +22,7 @@ func RunClient(c *nine.Conf) {
 	tf := nine.FCall{
 		MsgType: nine.TVersion,
 		Tag:     5,
-		Version: (*c).Version,
+		Version: nine.NineVersion,
 	}
 	rf := writeAndRead(&conn, &tf)
 	checkMsg(rf, nine.RVersion)
