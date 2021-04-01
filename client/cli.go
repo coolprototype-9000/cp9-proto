@@ -41,7 +41,7 @@ func RunClient(c *nine.Conf) {
 
 		s, err := strconv.Atoi(strArray[3])
 		if s > 65535 || s < 0 {
-			fmt.Printf("s is out of bounds")
+			fmt.Printf("Size of version is out of bounds")
 		}
 
 		version := (strArray[4])
@@ -51,7 +51,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -71,7 +71,7 @@ func RunClient(c *nine.Conf) {
 
 		s, err := strconv.Atoi(strArray[3])
 		if s > 65535 || s < 0 {
-			fmt.Printf("s is out of bounds")
+			fmt.Printf("size of uname is out of bounds")
 		}
 
 		uname := (strArray[4])
@@ -82,7 +82,7 @@ func RunClient(c *nine.Conf) {
 
 		s1, err := strconv.Atoi(strArray[5])
 		if s1 > 65535 || s1 < 0 {
-			fmt.Printf("s1 is out of bounds")
+			fmt.Printf("size of aname is out of bounds")
 		}
 
 		aname := (strArray[6])
@@ -92,7 +92,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -104,13 +104,13 @@ func RunClient(c *nine.Conf) {
 			fmt.Printf("tag is out of bounds")
 		}
 
-		aqid, err := strconv.Atoi(strArray[3])
+		aqid, err := strconv.Atoi(strArray[2])
 		if aqid > (2^(13*8))-1 || aqid < 0 { //FIXME:Big OOF, needs to be resolved
 			fmt.Printf("aqid is out of bounds")
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 
 	}
@@ -125,7 +125,7 @@ func RunClient(c *nine.Conf) {
 
 		s, err := strconv.Atoi(strArray[2])
 		if s > 65535 || s < 0 {
-			fmt.Printf("s is out of bounds")
+			fmt.Printf("size of ename is out of bounds")
 		}
 
 		ename := strArray[3]
@@ -135,7 +135,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -147,13 +147,13 @@ func RunClient(c *nine.Conf) {
 			fmt.Printf("tag is out of bounds")
 		}
 
-		oldtag, err := strconv.Atoi(strArray[1])
+		oldtag, err := strconv.Atoi(strArray[2])
 		if oldtag > 65535 || oldtag < 0 {
 			fmt.Printf("oldtag is out of bounds")
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -165,7 +165,7 @@ func RunClient(c *nine.Conf) {
 			fmt.Printf("tag is out of bounds")
 		}
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -188,7 +188,7 @@ func RunClient(c *nine.Conf) {
 
 		s, err := strconv.Atoi(strArray[4])
 		if s > 65535 || s < 0 {
-			fmt.Printf("s is out of bounds")
+			fmt.Printf("size of uname is out of bounds")
 		}
 
 		uname := (strArray[5])
@@ -199,7 +199,7 @@ func RunClient(c *nine.Conf) {
 
 		s1, err := strconv.Atoi(strArray[6])
 		if s1 > 65535 || s1 < 0 {
-			fmt.Printf("s1 is out of bounds")
+			fmt.Printf("size of aname is out of bounds")
 		}
 
 		aname := (strArray[7])
@@ -209,7 +209,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -226,7 +226,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -253,7 +253,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -275,7 +275,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 
 	}
@@ -295,7 +295,7 @@ func RunClient(c *nine.Conf) {
 
 		s, err := strconv.Atoi(strArray[3])
 		if s > 65535 || s < 0 {
-			fmt.Printf("s is out of bounds")
+			fmt.Printf("size of name is out of bounds")
 		}
 
 		name := (strArray[4])
@@ -315,7 +315,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -338,7 +338,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -363,11 +363,11 @@ func RunClient(c *nine.Conf) {
 
 		count, err := strconv.Atoi(strArray[4])
 		if count > 4294967295 || count < 0 {
-			fmt.Printf("fid is out of bounds")
+			fmt.Printf("count is out of bounds")
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -382,7 +382,7 @@ func RunClient(c *nine.Conf) {
 
 		count, err := strconv.Atoi(strArray[2])
 		if count > 4294967295 || count < 0 {
-			fmt.Printf("fid is out of bounds")
+			fmt.Printf("count is out of bounds")
 		}
 
 		data, err := strconv.Atoi(strArray[3])
@@ -391,7 +391,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //FIXME:Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //FIXME:Not sure what the error message should be
 		}
 	}
 
@@ -424,7 +424,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -442,7 +442,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -460,7 +460,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -471,7 +471,7 @@ func RunClient(c *nine.Conf) {
 			fmt.Printf("tag is out of bounds")
 		}
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -488,7 +488,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -499,7 +499,7 @@ func RunClient(c *nine.Conf) {
 			fmt.Printf("tag is out of bounds")
 		}
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -517,7 +517,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -540,7 +540,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -567,7 +567,7 @@ func RunClient(c *nine.Conf) {
 			fmt.Printf("stat is out of bounds")
 		}
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
@@ -579,7 +579,7 @@ func RunClient(c *nine.Conf) {
 		}
 
 		if err != nil {
-			log.Fatal("Failed to dial local server:", err) //Not sure what the error message should be
+			log.Fatal("Failed to find numbers in input, please check formatting", err) //Not sure what the error message should be
 		}
 	}
 
