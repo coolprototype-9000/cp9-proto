@@ -10,5 +10,5 @@ func main() {
 	r := &ramfs.RamFs{}
 	c := nine.MkConfig(r)
 	go nine.ServeForever(&c)
-	client.RunClient(&c)
+	client.RunCli(&c)
 }
