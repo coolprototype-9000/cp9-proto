@@ -46,9 +46,9 @@ func setupConsFs(c *net.Conn) nine.Fid {
 	fAttach(c, root, "snoop_dogg")
 	fWalk(c, root, listen, []string{"listen"})
 	fOpen(c, listen, nine.OREAD)
-	fRead(c, listen, 0, 20)
+	ld := string(fRead(c, listen, 0, 20).Data)
 	fClunk(c, listen)
-	fWalk(c, root, res, []string{"2"})
+	fWalk(c, root, res, []string{ld})
 	fOpen(c, res, nine.ORDWR)
 	return res
 }

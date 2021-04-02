@@ -16,5 +16,7 @@ func main() {
 	rConf := nine.MkConfig(r, 5641)
 	go nine.ServeForever(&cConf)
 	go nine.ServeForever(&rConf)
-	client.RunCli(&cConf, &rConf)
+	for {
+		client.RunCli(&cConf, &rConf)
+	}
 }

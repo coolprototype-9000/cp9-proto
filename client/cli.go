@@ -33,7 +33,10 @@ func RunCli(c *nine.Conf, r *nine.Conf) {
 		fmt.Print("> ")
 		call := fRead(&cc, terminal, 0, 9001)
 		if call.MsgType != nine.RRead {
-			continue
+			// ur ded
+			cc.Close()
+			rc.Close()
+			return
 		}
 		cmd := string(call.Data)
 		if len(cmd) == 0 {

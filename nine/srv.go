@@ -18,13 +18,12 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 	for {
 		tf, err := Read9P(s.conn)
 		if err != nil {
-			go func() {
-				req <- &csFCall{
-					f:  FCall{MsgType: TGoodbye},
-					id: id,
-				}
-				(*c).Close()
-			}()
+			req <- &csFCall{
+				f:  FCall{MsgType: TGoodbye},
+				id: id,
+			}
+			(*c).Close()
+			break
 		}
 
 		// If the message is a version, we can handle it
@@ -239,6 +238,7 @@ func ServeForever(c *Conf) {
 		if err != nil {
 			log.Fatal("Failed to accept client TCP con:", err)
 		}
+		fmt.Printf("***accepted new tcpcon over port %d\n", c.Port)
 
 		// Pass each session the request/response channels
 		go sessionMain(&conn, c.Fs, req, resp)
