@@ -30,7 +30,13 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 		// If the message is a version, we can handle it
 		if tf.MsgType == TVersion {
 			// Regenerate ID
-			f.Goodbye(id)
+			go func() {
+				req <- &csFCall{
+					f:  FCall{MsgType: TGoodbye},
+					id: id,
+				}
+			}()
+
 			for id == 0 {
 				id = rand.Uint64()
 			}
@@ -44,7 +50,6 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 				resp.Version = "unknown"
 				id = 0
 			}
-
 			go Write9P(s.conn, resp)
 			continue
 		} else if id == 0 {

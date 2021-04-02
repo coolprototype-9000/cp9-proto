@@ -184,10 +184,10 @@ func (r *RamFs) Create(conId uint64, f nine.Fid, name string, perm uint32, mode 
 
 	// [ formula specified in the man pages ]
 	if perm&(nine.FDir<<nine.FStatOffset) > 0 {
-		nperm = perm & (^uint32(0777) | (r.statTable[did].Mode & 0777))
+		nperm = perm & uint32(0777)
 		isDir = true
 	} else {
-		nperm = perm & (^uint32(0666) | (r.statTable[did].Mode & 0666))
+		nperm = perm & uint32(0666)
 		isDir = false
 	}
 
