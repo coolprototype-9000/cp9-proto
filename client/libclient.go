@@ -6,7 +6,7 @@ import (
 	"github.com/coolprototype-9000/cp9-proto/nine"
 )
 
-func fVersion(c *net.Conn, msize uint32, version string) {
+func fVersion(c *net.Conn, msize uint32, version string) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TVersion,
 		Tag:     mkTag(),
@@ -17,9 +17,10 @@ func fVersion(c *net.Conn, msize uint32, version string) {
 	// Send, recv, print
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RVersion)
+	return res
 }
 
-func fAttach(c *net.Conn, fid nine.Fid, uname string) {
+func fAttach(c *net.Conn, fid nine.Fid, uname string) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TAttach,
 		Tag:     mkTag(),
@@ -29,9 +30,10 @@ func fAttach(c *net.Conn, fid nine.Fid, uname string) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RAttach)
+	return res
 }
 
-func fWalk(c *net.Conn, fid nine.Fid, newFid nine.Fid, wname []string) {
+func fWalk(c *net.Conn, fid nine.Fid, newFid nine.Fid, wname []string) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TWalk,
 		Tag:     mkTag(),
@@ -42,9 +44,10 @@ func fWalk(c *net.Conn, fid nine.Fid, newFid nine.Fid, wname []string) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RWalk)
+	return res
 }
 
-func fCreate(c *net.Conn, fid nine.Fid, name string, perm uint32, mode byte) {
+func fCreate(c *net.Conn, fid nine.Fid, name string, perm uint32, mode byte) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TCreate,
 		Tag:     mkTag(),
@@ -56,9 +59,10 @@ func fCreate(c *net.Conn, fid nine.Fid, name string, perm uint32, mode byte) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RCreate)
+	return res
 }
 
-func fOpen(c *net.Conn, fid nine.Fid, mode byte) {
+func fOpen(c *net.Conn, fid nine.Fid, mode byte) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TOpen,
 		Tag:     mkTag(),
@@ -68,9 +72,10 @@ func fOpen(c *net.Conn, fid nine.Fid, mode byte) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.ROpen)
+	return res
 }
 
-func fRead(c *net.Conn, fid nine.Fid, off uint64, cnt uint32) {
+func fRead(c *net.Conn, fid nine.Fid, off uint64, cnt uint32) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TRead,
 		Tag:     mkTag(),
@@ -81,9 +86,10 @@ func fRead(c *net.Conn, fid nine.Fid, off uint64, cnt uint32) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RRead)
+	return res
 }
 
-func fWrite(c *net.Conn, fid nine.Fid, off uint64, data string) {
+func fWrite(c *net.Conn, fid nine.Fid, off uint64, data string) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TWrite,
 		Tag:     mkTag(),
@@ -94,9 +100,10 @@ func fWrite(c *net.Conn, fid nine.Fid, off uint64, data string) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RWrite)
+	return res
 }
 
-func fClunk(c *net.Conn, fid nine.Fid) {
+func fClunk(c *net.Conn, fid nine.Fid) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TClunk,
 		Tag:     mkTag(),
@@ -105,9 +112,10 @@ func fClunk(c *net.Conn, fid nine.Fid) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RClunk)
+	return res
 }
 
-func fRemove(c *net.Conn, fid nine.Fid) {
+func fRemove(c *net.Conn, fid nine.Fid) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TRemove,
 		Tag:     mkTag(),
@@ -116,9 +124,10 @@ func fRemove(c *net.Conn, fid nine.Fid) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RRemove)
+	return res
 }
 
-func fStat(c *net.Conn, fid nine.Fid) {
+func fStat(c *net.Conn, fid nine.Fid) *nine.FCall {
 	sf := nine.FCall{
 		MsgType: nine.TStat,
 		Tag:     mkTag(),
@@ -127,4 +136,5 @@ func fStat(c *net.Conn, fid nine.Fid) {
 
 	res := writeAndRead(c, &sf)
 	checkMsg(res, nine.RStat)
+	return res
 }

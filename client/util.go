@@ -36,3 +36,19 @@ func checkMsg(f *nine.FCall, expected byte) {
 	fmt.Printf("Got message type %d\n", f.MsgType)
 	fmt.Printf("Full struct: %v\n", f)
 }
+
+// Configure consfs with an open connection
+func setupConsFs(c *net.Conn) nine.Fid {
+	root := nine.Fid(5)
+	listen := nine.Fid(6)
+	res := nine.Fid(7)
+	fVersion(c, 0, nine.NineVersion)
+	fAttach(c, root, "snoop_dogg")
+	fWalk(c, root, listen, []string{"listen"})
+	fOpen(c, listen, nine.OREAD)
+	fRead(c, listen, 0, 20)
+	fClunk(c, listen)
+	fWalk(c, root, res, []string{"2"})
+	fOpen(c, res, nine.ORDWR)
+	return res
+}

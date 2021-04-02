@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// marshalUint is used frequently
 func marshalUint(num uint64, byteCnt uint8) []byte {
 	buf := make([]byte, byteCnt)
 	for i := uint8(0); i < byteCnt; i++ {

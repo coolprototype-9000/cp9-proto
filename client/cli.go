@@ -1,11 +1,9 @@
 package client
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 
@@ -15,20 +13,30 @@ import (
 // RunClient spins a very simple
 // CLI, useful for debugging the 9P
 // server.
-func RunCli(c *nine.Conf) {
-	address := fmt.Sprintf("localhost:%d", c.Port)
-	conn, err := net.Dial("tcp", address)
+func RunCli(c *nine.Conf, r *nine.Conf) {
+	cAddress := fmt.Sprintf("localhost:%d", c.Port)
+	cc, err := net.Dial("tcp", cAddress)
 	if err != nil {
-		log.Fatal("Failed to dial local server:", err)
+		log.Fatal("Failed to dial local consfs:", err)
 	}
+
+	rAddress := fmt.Sprintf("localhost:%d", r.Port)
+	rc, err := net.Dial("tcp", rAddress)
+	if err != nil {
+		log.Fatal("Failed to dial local consfs:", err)
+	}
+
+	terminal := setupConsFs(&cc)
+
 	// Run forever
-	rdr := bufio.NewReader(os.Stdin)
 	for {
-		var cmd string
 		fmt.Print("> ")
-		cmd, err := rdr.ReadString('\n')
-		cmd = strings.TrimRight(cmd, "\n")
-		if err != nil || len(cmd) == 0 {
+		call := fRead(&cc, terminal, 0, 9001)
+		if call.MsgType != nine.RRead {
+			continue
+		}
+		cmd := string(call.Data)
+		if len(cmd) == 0 {
 			continue
 		}
 
@@ -36,105 +44,109 @@ func RunCli(c *nine.Conf) {
 		switch strArray[0] {
 		case "Tversion":
 			if len(strArray) != 3 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			msize, err := strconv.Atoi(strArray[1])
 			if msize > int(^uint32(0)) || msize < 0 {
-				fmt.Println("msize is out of bounds")
+				fWrite(&cc, terminal, 0, "msize is out of bounds")
 				continue
 			} else if err != nil {
-				fmt.Println("syntax error: msize should be a number")
+				fWrite(&cc, terminal, 0, "syntax error: msize should be a number")
 				continue
 			}
 
 			version := strArray[2]
 			if len(version) > int(^uint16(0)) {
-				fmt.Println("Version is out of bounds")
+				fWrite(&cc, terminal, 0, "Version is out of bounds")
 				continue
 			}
 
-			fVersion(&conn, uint32(msize), version)
+			res := fVersion(&rc, uint32(msize), version)
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		//size[4] Tattach tag[2] fid[4] afid[4] uname[s] aname[s]
 		case "Tattach":
 			if len(strArray) != 3 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			} else if err != nil {
-				fmt.Println("syntax error: fid should be a number")
+				fWrite(&cc, terminal, 0, "syntax error: fid should be a number")
 				continue
 			}
 
 			uname := strArray[2]
 			if len(uname) > int(^uint16(0)) {
-				fmt.Println("name is out of bounds")
+				fWrite(&cc, terminal, 0, "name is out of bounds")
 				continue
 			}
 
-			fAttach(&conn, nine.Fid(fid), uname)
+			res := fAttach(&rc, nine.Fid(fid), uname)
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Topen":
-			if len(strArray) != 4 {
-				fmt.Println("incorrect parameters")
+			if len(strArray) != 3 {
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err1 := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			mode, err2 := strconv.Atoi(strArray[2])
 			if mode > int(^byte(0)) || mode < 0 {
-				fmt.Println("mode is out of bounds")
+				fWrite(&cc, terminal, 0, "mode is out of bounds")
 				continue
 			} else if err1 != nil || err2 != nil {
-				fmt.Println("syntax error: somewhere an integer conv failed")
+				fWrite(&cc, terminal, 0, "syntax error: somewhere an integer conv failed")
 				continue
 			}
 
-			fOpen(&conn, nine.Fid(fid), byte(mode))
+			res := fOpen(&rc, nine.Fid(fid), byte(mode))
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Twalk":
 			if len(strArray) < 3 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err1 := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			nfid, err2 := strconv.Atoi(strArray[2])
 			if nfid > int(^uint32(0)) || nfid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			if err1 != nil || err2 != nil {
-				fmt.Println("syntax error somewhere")
+				fWrite(&cc, terminal, 0, "syntax error somewhere")
 				continue
 			}
 
+			var res *nine.FCall
 			if len(strArray) == 3 {
-				fWalk(&conn, nine.Fid(fid), nine.Fid(nfid), []string{})
+				res = fWalk(&rc, nine.Fid(fid), nine.Fid(nfid), []string{})
 			} else {
 				ns := strArray[3:]
 				ok := true
 				for _, nm := range ns {
 					if len(nm) > int(^uint16(0)) {
-						fmt.Println("walk name too long")
+						fWrite(&cc, terminal, 0, "walk name too long")
 						ok = false
 						break
 					}
@@ -143,185 +155,187 @@ func RunCli(c *nine.Conf) {
 				if !ok {
 					continue
 				}
-				fWalk(&conn, nine.Fid(fid), nine.Fid(nfid), ns)
+				res = fWalk(&rc, nine.Fid(fid), nine.Fid(nfid), ns)
 			}
+
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Tcreate":
 			//size[4] Tcreate tag[2] fid[4] name[s] perm[4] mode[1]
 
 			if len(strArray) != 5 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err1 := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			name := strArray[2]
 			if len(name) > int(^uint16(0)) {
-				fmt.Println("name too long")
+				fWrite(&cc, terminal, 0, "name too long")
 				continue
 			}
 
 			perm, err2 := strconv.Atoi(strArray[3])
 			if perm > int(^uint32(0)) || perm < 0 {
-				fmt.Println("perm is out of bounds")
+				fWrite(&cc, terminal, 0, "perm is out of bounds")
 				continue
 			}
 
 			mode, err3 := strconv.Atoi(strArray[4])
 			if mode > int(^byte(0)) || mode < 0 {
-				fmt.Println("mode is out of bounds")
+				fWrite(&cc, terminal, 0, "mode is out of bounds")
 				continue
 			}
 
 			if err1 != nil || err2 != nil || err3 != nil {
-				fmt.Println("syntax error")
+				fWrite(&cc, terminal, 0, "syntax error")
 				continue
 			}
 
-			fCreate(&conn, nine.Fid(fid), name, uint32(perm), byte(mode))
+			res := fCreate(&rc, nine.Fid(fid), name, uint32(perm), byte(mode))
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Tread":
 
 			if len(strArray) != 4 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err1 := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			offset, err2 := strconv.Atoi(strArray[2])
 			if uint64(offset) > ^uint64(0) || offset < 0 {
-				fmt.Println("offset is out of bounds")
+				fWrite(&cc, terminal, 0, "offset is out of bounds")
 				continue
 			}
 
 			count, err3 := strconv.Atoi(strArray[3])
 			if count > int(^uint32(0)) || count < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			if err1 != nil || err2 != nil || err3 != nil {
-				fmt.Println("syntax error")
+				fWrite(&cc, terminal, 0, "syntax error")
 				continue
 			}
 
-			fRead(&conn, nine.Fid(fid), uint64(offset), uint32(count))
+			res := fRead(&rc, nine.Fid(fid), uint64(offset), uint32(count))
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v (%s)", res, string(res.Data)))
 
 		case "Twrite":
 			//size[4] Twrite tag[2] fid[4] offset[8] count[4] data[count]
 
-			if len(strArray) < 5 {
-				fmt.Println("incorrect parameters")
+			if len(strArray) < 4 {
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err1 := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			offset, err2 := strconv.Atoi(strArray[2])
 			if uint64(offset) > ^uint64(0) || offset < 0 {
-				fmt.Println("offset is out of bounds")
+				fWrite(&cc, terminal, 0, "offset is out of bounds")
 				continue
 			}
 
-			count, err3 := strconv.Atoi(strArray[3])
-			if count > int(^uint32(0)) || count < 0 {
-				fmt.Println("fid is out of bounds")
+			if err1 != nil || err2 != nil {
+				fWrite(&cc, terminal, 0, "syntax error")
 				continue
 			}
 
-			if err1 != nil || err2 != nil || err3 != nil {
-				fmt.Println("syntax error")
-				continue
-			}
-
-			data := strings.Join(strArray[4:], " ")
+			data := strings.Join(strArray[3:], " ")
 			if len(data) > int(^uint16(0)) {
-				fmt.Println("data too long")
+				fWrite(&cc, terminal, 0, "data too long")
 				continue
 			}
 
-			fWrite(&conn, nine.Fid(fid), uint64(offset), data)
+			res := fWrite(&rc, nine.Fid(fid), uint64(offset), data)
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Tclunk":
 			//size[4] Tclunk tag[2] fid[4]
 
-			if len(strArray) != 3 {
-				fmt.Println("incorrect parameters")
+			if len(strArray) != 2 {
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			if err != nil {
-				fmt.Println("syntax error")
+				fWrite(&cc, terminal, 0, "syntax error")
 				continue
 			}
 
-			fClunk(&conn, nine.Fid(fid))
+			res := fClunk(&rc, nine.Fid(fid))
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Tremove":
 
 			if len(strArray) != 2 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			if err != nil {
-				fmt.Println("syntax error")
+				fWrite(&cc, terminal, 0, "syntax error")
 				continue
 			}
 
-			fRemove(&conn, nine.Fid(fid))
+			res := fRemove(&rc, nine.Fid(fid))
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Tstat":
 
 			if len(strArray) != 2 {
-				fmt.Println("incorrect parameters")
+				fWrite(&cc, terminal, 0, "incorrect parameters")
 				continue
 			}
 
 			fid, err := strconv.Atoi(strArray[1])
 			if fid > int(^uint32(0)) || fid < 0 {
-				fmt.Println("fid is out of bounds")
+				fWrite(&cc, terminal, 0, "fid is out of bounds")
 				continue
 			}
 
 			if err != nil {
-				fmt.Println("syntax error")
+				fWrite(&cc, terminal, 0, "syntax error")
 				continue
 			}
 
-			fStat(&conn, nine.Fid(fid))
+			res := fStat(&rc, nine.Fid(fid))
+			fWrite(&cc, terminal, 0, fmt.Sprintf("%v", res))
 
 		case "Twstat":
-			fmt.Println("UNSUPPORTED BY THE CLI :(")
+			fWrite(&cc, terminal, 0, "UNSUPPORTED BY THE CLI ):")
 
 		default:
-			fmt.Println("Command not recognized big sad")
+			fWrite(&cc, terminal, 0, "Command not recognized big sad")
 
 		}
 	}

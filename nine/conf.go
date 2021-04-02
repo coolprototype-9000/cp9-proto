@@ -12,9 +12,9 @@ type Conf struct {
 
 // MkDefConfig generates a configuration with
 // sane defaults for the 9P server to use
-func MkConfig(f FileSys) Conf {
+func MkConfig(f FileSys, port int) Conf {
 	return Conf{
-		Port: 564, // The typical 9P port of choice, times ten
+		Port: port,
 		Fs:   f,
 	}
 }

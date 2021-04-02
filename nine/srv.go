@@ -212,7 +212,10 @@ func ServeForever(c *Conf) {
 
 	// Set up the filesystem
 	devNo := rand.Uint32()
-	c.Fs.Register(devNo)
+	err = c.Fs.Register(devNo)
+	if err != nil {
+		log.Fatal("Failed to register filesystem: ", err)
+	}
 
 	// Spin the single threaded processor
 	req := make(chan *csFCall)
