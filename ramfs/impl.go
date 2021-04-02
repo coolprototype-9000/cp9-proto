@@ -179,15 +179,12 @@ func (r *RamFs) Create(conId uint64, f nine.Fid, name string, perm uint32, mode 
 	// Create file ID and assign permissions. Also determine
 	// if the client wants a directory
 	nid := r.genId()
-	var nperm uint32
 	var isDir bool
 
 	// [ formula specified in the man pages ]
 	if perm&(nine.FDir<<nine.FStatOffset) > 0 {
-		nperm = perm & uint32(0777)
 		isDir = true
 	} else {
-		nperm = perm & uint32(0666)
 		isDir = false
 	}
 
@@ -213,7 +210,7 @@ func (r *RamFs) Create(conId uint64, f nine.Fid, name string, perm uint32, mode 
 			Flags: byte(perm >> nine.FStatOffset),
 			Id:    nid,
 		},
-		Mode:  nperm,
+		Mode:  perm,
 		Atime: mkTimeStamp(),
 		Mtime: mkTimeStamp(),
 		Name:  name,
