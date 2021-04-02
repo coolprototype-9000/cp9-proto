@@ -30,10 +30,11 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 		// If the message is a version, we can handle it
 		if tf.MsgType == TVersion {
 			// Regenerate ID
+			oldId := id
 			go func() {
 				req <- &csFCall{
 					f:  FCall{MsgType: TGoodbye},
-					id: id,
+					id: oldId,
 				}
 			}()
 
