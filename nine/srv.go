@@ -18,8 +18,13 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 	for {
 		tf, err := Read9P(s.conn)
 		if err != nil {
-			f.Goodbye(id)
-			(*c).Close()
+			go func() {
+				req <- &csFCall{
+					f:  FCall{MsgType: TGoodbye},
+					id: id,
+				}
+				(*c).Close()
+			}()
 		}
 
 		// If the message is a version, we can handle it
@@ -64,7 +69,8 @@ func sessionMain(c *net.Conn, f FileSys, req chan<- *csFCall, resp <-chan *FCall
 func singleThreadedProcessor(req <-chan *csFCall, resp chan<- *FCall, f FileSys) {
 	for r := range req {
 		switch r.f.MsgType {
-
+		case TGoodbye:
+			f.Goodbye(r.id)
 		case TAttach:
 			q, err := f.Attach(r.id, r.f.F, r.f.Uname)
 			if err != nil {

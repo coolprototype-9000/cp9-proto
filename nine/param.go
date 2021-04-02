@@ -32,6 +32,7 @@ const (
 	RStat
 	TWStat
 	RWStat
+	TGoodbye
 )
 
 // NineVersion is our own unique version string
