@@ -65,6 +65,7 @@ const (
 const (
 	DevRamFs uint16 = 0
 	DevCons  uint16 = 1
+	DevNet   uint16 = 2
 )
 
 // Mode bits

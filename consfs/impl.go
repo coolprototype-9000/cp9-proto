@@ -101,12 +101,12 @@ func (c *ConsFs) Walk(conId uint64, f nine.Fid, nf nine.Fid, wname []string) ([]
 		return []nine.Qid{}, errors.New("starting fid is not a directory")
 	}
 
-	c.updateATime(rootId)
-
 	// "the fid must not have been opened for i/o"
 	if c.isOpenByMe(conId, f) {
 		return []nine.Qid{}, errors.New("fid is open for i/o so can't walk")
 	}
+
+	c.updateATime(rootId)
 
 	// "it is legal for nwname to be zero, in which case the walk works and nf
 	// represents the same file as f"

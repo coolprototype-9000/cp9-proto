@@ -90,12 +90,11 @@ func (r *RamFs) Walk(conId uint64, f nine.Fid, nf nine.Fid, wname []string) ([]n
 		return make([]nine.Qid, 0), errors.New("starting fid doesn't represent dir")
 	}
 
-	r.updateATime(id)
-
 	// "the fid must not have been Opened for I/O by Open or Create"
 	if r.isOpenByMe(conId, f) {
 		return make([]nine.Qid, 0), errors.New("fid is Open for I/O")
 	}
+	r.updateATime(id)
 
 	// "it is legal for nwname to be zero, in which case the Walk will succeed
 	// and nf will represent the same file as f. the remainder of this discussion
@@ -115,10 +114,10 @@ func (r *RamFs) Walk(conId uint64, f nine.Fid, nf nine.Fid, wname []string) ([]n
 	for i, wn := range wname {
 		// Check that we're a directory. This never
 		// should happen if i == 0
+		r.updateATime(id)
 		if !r.idIsDir(id) {
 			return wqid, nil
 		}
-		r.updateATime(id)
 		var err error
 		id, err = r.descend(id, fd.owner, wn)
 		if err != nil {
