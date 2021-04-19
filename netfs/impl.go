@@ -257,7 +257,11 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 		// Ctl is never read
 		// and doing so helps nobody
 		if ni.checkDead() {
-			return []byte("error: dead connection")[:count], nil
+			err := []byte("error: dead connection")
+			if uint32(len(err)) > count {
+				err = err[:count]
+			}
+			return err, nil
 		}
 		return []byte{}, nil
 	case data:
@@ -268,7 +272,11 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 		} else if ni.s == idle {
 			err := ni.openCon()
 			if err != nil {
-				return []byte(err.Error())[:count], nil
+				err := []byte(err.Error())
+				if uint32(len(err)) > count {
+					err = err[:count]
+				}
+				return err, nil
 			}
 		}
 
@@ -278,23 +286,38 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			_, err := (*ni.c).Read(rb)
 			if err != nil {
 				ni.s = dead
-				return []byte(err.Error())[:count], nil
+				err := []byte(err.Error())
+				if uint32(len(err)) > count {
+					err = err[:count]
+				}
+				return err, nil
 			}
 			return rb, nil
 		} else {
 			// If you are idle or listening, this makes
 			// approximately zero sense to read
-			err := "error: you're probably listening - unsupported"
-			return []byte(err)[:count], nil
+			err := []byte("error: you're probably listening - unsupported")
+			if uint32(len(err)) > count {
+				err = err[:count]
+			}
+			return err, nil
 		}
 	case listen:
 		if ni.checkDead() {
-			return []byte("error: dead connection")[:count], nil
+			err := []byte("error: dead connection")
+			if uint32(len(err)) > count {
+				err = err[:count]
+			}
+			return err, nil
 		}
 		if ni.s == idle {
 			err := ni.enterListeningState()
 			if err != nil {
-				return []byte(err.Error())[:count], nil
+				err := []byte(err.Error())
+				if uint32(len(err)) > count {
+					err = err[:count]
+				}
+				return err, nil
 			}
 		}
 
@@ -302,7 +325,11 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			cn, err := ni.acceptCon()
 			if err != nil {
 				ni.s = dead
-				return []byte(err.Error())[:count], nil
+				err := []byte(err.Error())
+				if uint32(len(err)) > count {
+					err = err[:count]
+				}
+				return err, nil
 			}
 
 			id := genId()
@@ -311,8 +338,11 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			c.cons[id].c = cn
 			return []byte(fmt.Sprintf("%d", id))[:count], nil
 		} else {
-			err := "error: you are probably connected - unsupported"
-			return []byte(err)[:count], nil
+			err := []byte("error: you are probably connected - unsupported")
+			if uint32(len(err)) > count {
+				err = err[:count]
+			}
+			return err, nil
 		}
 	}
 	return []byte("THIS IS A BUG")[:count], nil
