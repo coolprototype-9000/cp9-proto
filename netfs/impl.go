@@ -372,7 +372,7 @@ func (c *NetFs) Write(conId uint64, f nine.Fid, offset uint64, dta []byte) (uint
 			return 0, nil
 		}
 		c.updateMTimeAs(fd.owner, id)
-		ni.cs = string(data)
+		ni.cs = string(dta)
 		return uint32(len(dta)), nil
 	case data:
 		// If the state is connecting, open
