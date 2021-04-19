@@ -102,11 +102,3 @@ func (ni *netInst) acceptCon() (*net.Conn, error) {
 	}
 	return &c, nil
 }
-
-func (n *NetFs) gc() bool {
-	tps := []ptrType{dir, ctl, data, listen}
-	canGc := true
-	for tp := range tps {
-
-	}
-}
