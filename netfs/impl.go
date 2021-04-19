@@ -25,7 +25,7 @@ func (c *NetFs) Attach(conId uint64, f nine.Fid, uname string) (nine.Qid, error)
 		c.rootstat = &nine.Stat{
 			DevType: nine.DevNet,
 			DevNo:   c.devNumber,
-			Q:       nine.Qid{Flags: nine.FDir},
+			Q:       nine.Qid{Flags: nine.FDir, Id: rootId},
 			Mode:    nine.PUR | nine.PUW | nine.PUX | nine.PGR | nine.PGX | nine.POR | nine.POX,
 			Atime:   uint32(time.Now().Unix()),
 			Mtime:   uint32(time.Now().Unix()),
@@ -38,7 +38,7 @@ func (c *NetFs) Attach(conId uint64, f nine.Fid, uname string) (nine.Qid, error)
 		c.clonestat = &nine.Stat{
 			DevType: nine.DevNet,
 			DevNo:   c.devNumber,
-			Q:       nine.Qid{},
+			Q:       nine.Qid{Id: cloneId},
 			Mode:    nine.PUR | nine.PGR | nine.POR,
 			Atime:   uint32(time.Now().Unix()),
 			Mtime:   uint32(time.Now().Unix()),
@@ -100,7 +100,7 @@ func (c *NetFs) Walk(conId uint64, f nine.Fid, nf nine.Fid, wname []string) ([]n
 			return wqid, nil
 		}
 		var err error
-		id, err := c.descend(id, fd.owner, wn)
+		id, err = c.descend(id, fd.owner, wn)
 		if err != nil {
 			if i == 0 {
 				return make([]nine.Qid, 0), err
@@ -108,7 +108,13 @@ func (c *NetFs) Walk(conId uint64, f nine.Fid, nf nine.Fid, wname []string) ([]n
 				return wqid, nil
 			}
 		}
-		wqid = append(wqid, c.genStat(id).Q)
+		if id == rootId {
+			wqid = append(wqid, c.rootstat.Q)
+		} else if id == cloneId {
+			wqid = append(wqid, c.clonestat.Q)
+		} else {
+			wqid = append(wqid, c.genStat(id).Q)
+		}
 	}
 
 	c.fidTable[conId][nfd] = id
@@ -158,6 +164,12 @@ func (c *NetFs) Open(conId uint64, f nine.Fid, mode byte) (nine.Qid, error) {
 	fd.open = true
 	fd.openMode = mode
 	c.fidTable[conId][fd] = id
+
+	if id == rootId {
+		return c.rootstat.Q, nil
+	} else if id == cloneId {
+		return c.clonestat.Q, nil
+	}
 	return c.genStat(id).Q, nil
 }
 
@@ -197,6 +209,7 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			ret = append(ret, sb...)
 		}
 
+		fmt.Printf("_____________READ_____________\n")
 		return ret, nil
 
 	} else if id == cloneId {
@@ -369,7 +382,9 @@ func (c *NetFs) Clunk(conId uint64, f nine.Fid) error {
 
 	id := c.fidTable[conId][fd]
 	delete(c.fidTable[conId], fd)
-	c.gc(id)
+	if id != rootId && id != cloneId {
+		c.gc(id)
+	}
 	return nil
 }
 
@@ -394,11 +409,17 @@ func (c *NetFs) Remove(conId uint64, f nine.Fid) error {
 func (c *NetFs) Stat(conId uint64, f nine.Fid) (nine.Stat, error) {
 	fd, ok := c.getFid(conId, f)
 	if !ok {
-		return nine.Stat{}, errors.New("fid requested for Remove is not in use")
+		return nine.Stat{}, errors.New("fid requested for Stat is not in use")
 	}
 
 	id := c.fidTable[conId][fd]
-	return c.genStat(id), nil
+	if id == rootId {
+		return *c.rootstat, nil
+	} else if id == cloneId {
+		return *c.clonestat, nil
+	} else {
+		return c.genStat(id), nil
+	}
 }
 
 func (c *NetFs) Wstat(conId uint64, f nine.Fid, ns nine.Stat) error {

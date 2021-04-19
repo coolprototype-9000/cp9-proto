@@ -20,7 +20,7 @@ func RunCli(c *nine.Conf, r *nine.Conf) {
 		log.Fatal("Failed to dial local consfs:", err)
 	}
 
-	rAddress := fmt.Sprintf("142.79.194.65:%d", r.Port)
+	rAddress := fmt.Sprintf("localhost:%d", r.Port)
 	rc, err := net.Dial("tcp", rAddress)
 	if err != nil {
 		log.Fatal("Failed to dial local ramfs:", err)

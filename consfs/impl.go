@@ -38,7 +38,7 @@ func (c *ConsFs) Attach(conId uint64, f nine.Fid, uname string) (nine.Qid, error
 		c.statTable[rootId] = nine.Stat{
 			DevType: nine.DevCons,
 			DevNo:   c.devNumber,
-			Q:       nine.Qid{Flags: nine.FDir},
+			Q:       nine.Qid{Flags: nine.FDir, Id: rootId},
 			Mode:    nine.PUR | nine.PUW | nine.PUX | nine.PGR | nine.PGX | nine.POR | nine.POX,
 			Atime:   uint32(time.Now().Unix()),
 			Mtime:   uint32(time.Now().Unix()),
@@ -52,7 +52,7 @@ func (c *ConsFs) Attach(conId uint64, f nine.Fid, uname string) (nine.Qid, error
 		c.statTable[listenId] = nine.Stat{
 			DevType: nine.DevCons,
 			DevNo:   c.devNumber,
-			Q:       nine.Qid{},
+			Q:       nine.Qid{Id: listenId},
 			Mode:    nine.PUR | nine.PGR | nine.POR,
 			Atime:   uint32(time.Now().Unix()),
 			Mtime:   uint32(time.Now().Unix()),

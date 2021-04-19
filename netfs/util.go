@@ -2,6 +2,7 @@ package netfs
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -31,20 +32,16 @@ func (c *NetFs) isOpenByMe(conId uint64, f nine.Fid) bool {
 	return false
 }
 
-// big slow
-func (c *NetFs) isOpenByAnyone(id uint64) bool {
+func (c *NetFs) isRefByAnyone(id uint64) bool {
 	for _, ft := range c.fidTable {
-		for fd, thisID := range ft {
-			if fd.open && thisID == id {
+		for _, thisID := range ft {
+			if thisID == id {
 				return true
-			} else if thisID == id {
-				return false
 			}
 		}
 	}
 	return false
 }
-
 func (c *NetFs) idIsDir(id uint64) bool {
 	_, tp := reduceId(id)
 	return tp == dir
@@ -67,18 +64,36 @@ func (c *NetFs) idExists(id uint64) bool {
 }
 
 func (c *NetFs) updateATime(id uint64) {
-	cid, tp := reduceId(id)
-	nf := c.cons[cid].children[tp]
-	nf.ats = uint32(time.Now().Unix())
+	if id == rootId {
+		c.rootstat.Atime = uint32(time.Now().Unix())
+	} else if id == cloneId {
+		c.rootstat.Atime = uint32(time.Now().Unix())
+	} else {
+		cid, tp := reduceId(id)
+		nf := c.cons[cid].children[tp]
+		nf.ats = uint32(time.Now().Unix())
+	}
 }
 
 func (c *NetFs) updateMTimeAs(user string, id uint64) {
-	cid, tp := reduceId(id)
-	nf := c.cons[cid].children[tp]
-	nf.mts = uint32(time.Now().Unix())
-	nf.ats = nf.mts
-	nf.muid = user
-	nf.version++
+	if id == rootId {
+		c.rootstat.Atime = uint32(time.Now().Unix())
+		c.rootstat.Mtime = c.rootstat.Atime
+		c.rootstat.Muid = user
+		c.rootstat.Q.Version++
+	} else if id == cloneId {
+		c.clonestat.Atime = uint32(time.Now().Unix())
+		c.clonestat.Mtime = c.clonestat.Atime
+		c.clonestat.Muid = user
+		c.clonestat.Q.Version++
+	} else {
+		cid, tp := reduceId(id)
+		nf := c.cons[cid].children[tp]
+		nf.mts = uint32(time.Now().Unix())
+		nf.ats = nf.mts
+		nf.muid = user
+		nf.version++
+	}
 }
 
 // Descend once
@@ -101,6 +116,10 @@ func (c *NetFs) descend(startID uint64, user string, target string) (uint64, err
 	}
 
 	if startID == rootId {
+		if target == "clone" {
+			fmt.Printf("HIIIIIIIIIIIIIIIIIIII\n")
+			return cloneId, nil
+		}
 		nid, err := strconv.ParseUint(target, 10, 64)
 		if err != nil {
 			goto failwalk
@@ -125,10 +144,21 @@ failwalk:
 	return 0, errors.New("target of descend not found")
 }
 
-func (r *NetFs) checkPerms(id uint64, user string) []bool {
+func (c *NetFs) checkPerms(id uint64, user string) []bool {
+	var st nine.Stat
+	var m uint32
+
+	if id == rootId {
+		st = *c.rootstat
+		m = (*c.rootstat).Mode
+	} else if id == cloneId {
+		st = *c.clonestat
+		m = (*c.clonestat).Mode
+	} else {
+		st := c.genStat(id)
+		m = st.Mode
+	}
 	res := make([]bool, 3)
-	st := r.genStat(id)
-	m := st.Mode
 
 	if st.Uid == user {
 		res[0] = (m & nine.PUR) > 0

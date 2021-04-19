@@ -51,10 +51,6 @@ func (ni *netInst) checkDead() bool {
 	return ni.s == dead
 }
 
-func (ni *netInst) updateCs(cs string) {
-	ni.cs = cs
-}
-
 func (ni *netInst) openCon() error {
 	if ni.s != idle {
 		return errors.New("incorrect state transition")

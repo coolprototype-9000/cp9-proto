@@ -35,8 +35,8 @@ func genId() uint64 {
 }
 
 func reduceId(id uint64) (uint64, ptrType) {
-	ptrid := id / 4
 	tp := ptrType(id % 4)
+	ptrid := id - uint64(tp)
 	return ptrid, tp
 }
 
@@ -72,7 +72,9 @@ func ptrTypeToString(p ptrType) string {
 
 func (c *NetFs) genStat(id uint64) nine.Stat {
 	cid, tp := reduceId(id)
+	fmt.Printf("\tWALK: trying to get to %d/%d", cid, tp)
 	parent := c.cons[cid]
+	fmt.Printf("\tWALK: PARENT: %v", parent)
 	n := parent.children[tp]
 
 	if id == rootId {
@@ -112,7 +114,7 @@ func (c *NetFs) gc(id uint64) {
 	tps := []ptrType{dir, ctl, data, listen}
 	for tp := range tps {
 		nid := cid + uint64(tp)
-		if c.isOpenByAnyone(nid) {
+		if c.isRefByAnyone(nid) {
 			return
 		}
 	}
