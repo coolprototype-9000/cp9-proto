@@ -324,7 +324,6 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 		if ni.s == listening {
 			cn, err := ni.acceptCon()
 			if err != nil {
-				ni.s = dead
 				err := []byte(err.Error())
 				if uint32(len(err)) > count {
 					err = err[:count]
@@ -336,7 +335,12 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			c.cons[id] = mkEmptyNetInst(fd.owner, id)
 			c.cons[id].s = connected
 			c.cons[id].c = cn
-			return []byte(fmt.Sprintf("%d", id))[:count], nil
+
+			cnt := []byte(fmt.Sprintf("%d", id))
+			if uint32(len(cnt)) > count {
+				cnt = cnt[:count]
+			}
+			return cnt, nil
 		} else {
 			err := []byte("error: you are probably connected - unsupported")
 			if uint32(len(err)) > count {
