@@ -155,15 +155,21 @@ func (c *NetFs) checkPerms(id uint64, user string) []bool {
 		st = *c.clonestat
 		m = (*c.clonestat).Mode
 	} else {
-		st := c.genStat(id)
+		st = c.genStat(id)
 		m = st.Mode
 	}
 	res := make([]bool, 3)
 
+	fmt.Printf("USER IS %s, UID IS %s\n", user, st.Uid)
 	if st.Uid == user {
+		fmt.Printf("YEET user == uid\n")
 		res[0] = (m & nine.PUR) > 0
 		res[1] = (m & nine.PUW) > 0
 		res[2] = (m & nine.PUX) > 0
+
+		if res[0] {
+			fmt.Printf("YEET we good fam\n")
+		}
 	}
 	if st.Gid == user {
 		res[0] = res[0] || (m&nine.PGR) > 0

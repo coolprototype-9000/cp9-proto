@@ -130,6 +130,7 @@ func (c *NetFs) Open(conId uint64, f nine.Fid, mode byte) (nine.Qid, error) {
 	if !ok {
 		return nine.Qid{}, errors.New("fid requested for open is not in use")
 	}
+
 	id := c.fidTable[conId][fd]
 	c.updateATime(id)
 
@@ -144,6 +145,7 @@ func (c *NetFs) Open(conId uint64, f nine.Fid, mode byte) (nine.Qid, error) {
 
 	// Make initial permission validation check
 	fperm := c.checkPerms(id, fd.owner)
+	fmt.Printf("!!!!!!!!!! HELLO PRERMISSIONS ARE %v\n", fperm)
 	openTypeBits := mode & 0b11
 
 	if !fperm[0] && (openTypeBits == nine.OREAD || openTypeBits == nine.ORDWR) {
@@ -191,7 +193,6 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			return []byte{}, errors.New("directory seeking is illegal")
 		}
 
-		// clone
 		scnt := int(count)
 		scnt -= len(nine.MarshalStat(*c.clonestat))
 		if scnt < 0 {
