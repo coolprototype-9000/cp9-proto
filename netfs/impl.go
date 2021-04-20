@@ -268,7 +268,11 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 		// If the state is connecting, open
 		// the connection for the first time.
 		if ni.checkDead() {
-			return []byte("error: dead connection")[:count], nil
+			err := []byte("error: dead connection")
+			if uint32(len(err)) > count {
+				err = err[:count]
+			}
+			return err, nil
 		} else if ni.s == idle {
 			err := ni.openCon()
 			if err != nil {
