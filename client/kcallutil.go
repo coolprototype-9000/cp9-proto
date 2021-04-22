@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -26,29 +27,17 @@ func writeAndRead(c *net.Conn, f *nine.FCall) *nine.FCall {
 	return &rf
 }
 
-func checkMsg(f *nine.FCall, expected byte) {
+func checkMsg(f *nine.FCall, expected byte) error {
+	var err error
 	if f.MsgType == expected {
 		fmt.Printf("Success! ")
+		err = nil
 	} else {
 		fmt.Printf("FAILURE! ")
+		err = errors.New("incorrect call gotten back, presuming failure")
 	}
 
 	fmt.Printf("Got message type %d\n", f.MsgType)
 	fmt.Printf("Full struct: %v\n", f)
-}
-
-// Configure consfs with an open connection
-func setupConsFs(c *net.Conn) nine.Fid {
-	root := nine.Fid(5)
-	listen := nine.Fid(6)
-	res := nine.Fid(7)
-	fVersion(c, 0, nine.NineVersion)
-	fAttach(c, root, "snoop_dogg")
-	fWalk(c, root, listen, []string{"listen"})
-	fOpen(c, listen, nine.OREAD)
-	ld := string(fRead(c, listen, 0, 20).Data)
-	fClunk(c, listen)
-	fWalk(c, root, res, []string{ld})
-	fOpen(c, res, nine.ORDWR)
-	return res
+	return err
 }

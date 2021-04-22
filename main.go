@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/coolprototype-9000/cp9-proto/client"
 	"github.com/coolprototype-9000/cp9-proto/consfs"
 	"github.com/coolprototype-9000/cp9-proto/netfs"
 	"github.com/coolprototype-9000/cp9-proto/nine"
@@ -16,7 +15,9 @@ func main() {
 	rConf := nine.MkConfig(n, 5641)
 	go nine.ServeForever(&cConf)
 	go nine.ServeForever(&rConf)
-	for {
-		client.RunCli(&cConf, &rConf)
-	}
+	/*
+		for {
+			hardcoreclient.RunCli(&cConf, &rConf)
+		}
+	*/
 }
