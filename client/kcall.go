@@ -8,7 +8,7 @@ import (
 )
 
 // Initiates a 9P connection with unbounded message size
-func fVersion(onichan kchan, msize uint32, version string) {
+func fVersion(c *net.Conn, msize uint32, version string) (*kchan, error) {
 	sf := nine.FCall{
 		MsgType: nine.TVersion,
 		Tag:     mkTag(),
@@ -17,12 +17,19 @@ func fVersion(onichan kchan, msize uint32, version string) {
 	}
 
 	// Send, recv, print
-	res := writeAndRead(onichan.c, &sf)
-	checkMsg(res, nine.RVersion)
+	res := writeAndRead(c, &sf)
+	err := checkMsg(res, nine.RVersion)
+
+	if err != nil {
+		var nc kchan
+		nc.c = c
+		return &nc, nil
+	}
+	return &kchan{}, errors.New("attach failed")
 }
 
 // TODO
-func fAttach(c *net.Conn, newFid nine.Fid, uname string, prefix string) (kchan, error) {
+func fAttach(onichan *kchan, newFid nine.Fid, uname string, prefix string) error {
 	sf := nine.FCall{
 		MsgType: nine.TAttach,
 		Tag:     mkTag(),
@@ -30,21 +37,19 @@ func fAttach(c *net.Conn, newFid nine.Fid, uname string, prefix string) (kchan, 
 		Uname:   uname,
 	}
 
-	res := writeAndRead(c, &sf) //Not sure if I'm returning the nine FCall or JUST the dummy struct
+	res := writeAndRead(onichan.c, &sf) //Not sure if I'm returning the nine FCall or JUST the nc struct
 	err := checkMsg(res, nine.RAttach)
 
 	if err != nil {
-		var dummy kchan
-		dummy.c = c
-		dummy.fid = newFid
-		dummy.name = prefix
-		return dummy, nil
+		onichan.fid = newFid
+		onichan.name = prefix
+		return nil
 	}
-	return kchan{}, errors.New("Attach failed")
+	return errors.New("attach failed")
 }
 
 // TODO
-func fWalk(onichan kchan, newFid nine.Fid, wname []string) (kchan, error) { //Is the wname same as the name for kchan?
+func fWalk(onichan *kchan, newFid nine.Fid, wname []string) (*kchan, error) { //Is the wname same as the name for kchan?
 	sf := nine.FCall{
 		MsgType: nine.TWalk,
 		Tag:     mkTag(),
@@ -52,23 +57,27 @@ func fWalk(onichan kchan, newFid nine.Fid, wname []string) (kchan, error) { //Is
 		Newf:    newFid,
 		Wname:   wname,
 	}
-	var onichan1 kchan
-	onichan1.c = onichan.c
-	onichan1.name = onichan.name
-	onichan1.fid = newFid
+
 	res := writeAndRead(onichan.c, &sf)
 	err := checkMsg(res, nine.RRead)
+
 	if err != nil && len(wname) == len(res.Wqid) {
-		for i := 0; i < len(wname); i++ {
-			onichan1.name = onichan1.name + "/" + wname[i]
+		nc := &kchan{
+			c:    onichan.c,
+			name: onichan.name,
+			fid:  newFid,
 		}
-	} else {
-		return onichan1, errors.New("walk failed")
+
+		for i := 0; i < len(wname); i++ {
+			nc.name += "/" + wname[i]
+		}
+		return nc, nil
 	}
-	return onichan1, nil
+
+	return &kchan{}, errors.New("walk failed")
 }
 
-func fCreate(onichan kchan, name string, perm uint32, mode byte) (kchan, error) {
+func fCreate(onichan *kchan, name string, perm uint32, mode byte) error {
 	sf := nine.FCall{
 		MsgType: nine.TCreate,
 		Tag:     mkTag(),
@@ -83,24 +92,24 @@ func fCreate(onichan kchan, name string, perm uint32, mode byte) (kchan, error) 
 	err := checkMsg(res, nine.RCreate)
 	if err != nil {
 		onichan.name += "/" + name
-		return onichan, nil
+		return nil
 	}
-	return onichan, errors.New("create failed")
+	return errors.New("create failed")
 }
 
-func fOpen(c *net.Conn, fid nine.Fid, mode byte) error {
+func fOpen(onichan *kchan, mode byte) error {
 	sf := nine.FCall{
 		MsgType: nine.TOpen,
 		Tag:     mkTag(),
-		F:       fid,
+		F:       onichan.fid,
 		Mode:    mode,
 	}
 
-	res := writeAndRead(c, &sf)
+	res := writeAndRead(onichan.c, &sf)
 	return checkMsg(res, nine.ROpen)
 }
 
-func fRead(onichan kchan, off uint64, cnt uint32) ([]byte, error) {
+func fRead(onichan *kchan, off uint64, cnt uint32) ([]byte, error) {
 	sf := nine.FCall{
 		MsgType: nine.TRead,
 		Tag:     mkTag(),
@@ -115,7 +124,7 @@ func fRead(onichan kchan, off uint64, cnt uint32) ([]byte, error) {
 	return res.Data, err
 }
 
-func fWrite(onichan kchan, off uint64, data string) (uint32, error) {
+func fWrite(onichan *kchan, off uint64, data string) (uint32, error) {
 	sf := nine.FCall{
 		MsgType: nine.TWrite,
 		Tag:     mkTag(),
@@ -129,7 +138,7 @@ func fWrite(onichan kchan, off uint64, data string) (uint32, error) {
 	return res.Count, err
 }
 
-func fClunk(onichan kchan) error {
+func fClunk(onichan *kchan) error {
 	sf := nine.FCall{
 		MsgType: nine.TClunk,
 		Tag:     mkTag(),
@@ -140,7 +149,7 @@ func fClunk(onichan kchan) error {
 	return checkMsg(res, nine.RClunk)
 }
 
-func fRemove(onichan kchan) error {
+func fRemove(onichan *kchan) error {
 	sf := nine.FCall{
 		MsgType: nine.TRemove,
 		Tag:     mkTag(),
@@ -151,7 +160,7 @@ func fRemove(onichan kchan) error {
 	return checkMsg(res, nine.RRemove)
 }
 
-func fStat(onichan kchan) (nine.Stat, error) {
+func fStat(onichan *kchan) (nine.Stat, error) {
 	sf := nine.FCall{
 		MsgType: nine.TStat,
 		Tag:     mkTag(),
