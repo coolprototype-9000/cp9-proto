@@ -25,7 +25,7 @@ func fVersion(c *net.Conn, msize uint32, version string) (*kchan, error) {
 		nc.c = c
 		return &nc, nil
 	}
-	return &kchan{}, errors.New("attach failed")
+	return &kchan{}, errors.New("version failed")
 }
 
 // TODO
