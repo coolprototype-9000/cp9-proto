@@ -46,11 +46,23 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 			}
 			return &rootChannel, nil
 		}
-	} else if pth[0] != '/' {
+	}
+
+	// Initial channel list population
+	if pth[0] != '/' && els[0] != ".." {
+		// Normal case: forward eval the mount table where
+		// we currently stand
 		if ncl := p.mnt.forwardEval(p.cwd); len(ncl) != 0 {
 			cl = ncl
+		} else {
+			cl = []*kchan{p.cwd}
 		}
+	} else if els[0] == ".." {
+		// Dot dot case: set the channel list to just be
+		// the current working directory and let the loop handle it
+		cl = []*kchan{p.cwd}
 	} else {
+		// Rooted case, try to forward eval root otherwise do nothing
 		if ncl := p.mnt.forwardEval(&rootChannel); len(ncl) != 0 {
 			cl = ncl
 		}
@@ -77,15 +89,19 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		if el == ".." {
 			// result is one possible result, but we need
 			// to backwards-eval the mount table
+			fmt.Printf("Dot dot res is %v\n", *initwalkres)
 			trimmedinitialnm := path.Dir(cc.name)
-			nmntres, err := p.mnt.reverseEval(initwalkres, trimmedinitialnm)
+			nmntres, err := p.mnt.reverseEval(cc, trimmedinitialnm)
 			if err == nil {
 				cl = []*kchan{nmntres}
 				canClunk = false
+				fmt.Printf("No dot dot error\n")
 			} else {
 				cl = []*kchan{initwalkres}
 				canClunk = true
+				fmt.Printf("Dot dot error\n")
 			}
+			fmt.Printf("Solved ..: proper parent is %v\n", *cl[0])
 		} else {
 			fmt.Printf("Evaluating: %v\n", *initwalkres)
 			if i == len(els)-1 && estop {

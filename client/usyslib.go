@@ -37,7 +37,7 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 }
 
 func (p *Proc) Stat(name string) *nine.Stat {
-	kc, err := p.evaluate(name, false)
+	kc, err := p.evaluate(name, true)
 	if err != nil {
 		p.errstr = "failed to evaluate name, no such file/dir?"
 		return nil
@@ -64,4 +64,17 @@ func (p *Proc) Fstat(fd int) *nine.Stat {
 		return nil
 	}
 	return &st
+}
+
+func (p *Proc) Chdir(pathname string) int {
+	ncwd, err := p.evaluate(pathname, true)
+	if err != nil {
+		p.errstr = "no such file or directory"
+		return -1
+	}
+	if !kchanCmp(p.cwd, &rootChannel) {
+		fClunk(p.cwd)
+	}
+	p.cwd = ncwd
+	return 0
 }

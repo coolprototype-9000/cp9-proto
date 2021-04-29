@@ -65,7 +65,7 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 	}
 	oldc, err := p.evaluate(old, true)
 	if err != nil {
-		p.errstr = "failed to evaluate old path"
+		p.errstr = "failed to evaluate new path"
 		return -1
 	}
 
@@ -94,6 +94,7 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 		}
 		p.mnt.bind(oldc, newc, true)
 	}
+	fmt.Printf("BOUND %v -> %v\n", *oldc, *newc)
 	return 0
 }
 

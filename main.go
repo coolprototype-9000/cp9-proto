@@ -31,7 +31,8 @@ func main() {
 		log.Fatalf("failure to bind ramfs: %s", myproc.Errstr())
 	}
 
-	st = myproc.Create("consfs", nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
+	myproc.Create("consfs", nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
+	st = myproc.Create("testdir", nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
 
 	if st < 0 {
 		log.Fatalf("failure to create: %s", myproc.Errstr())
@@ -49,14 +50,24 @@ func main() {
 		log.Fatalf("failure to get listen: %s", myproc.Errstr())
 	}
 
-	sc := myproc.Create("testlisten", nine.ORDWR, nine.PUR|nine.PGR|nine.POR)
+	myproc.Create("testlisten", nine.ORDWR, nine.PUR|nine.PGR|nine.POR)
 	st = myproc.Bind("/consfs/listen", "testlisten", client.Replace)
 	if st < 0 {
 		log.Fatalf("failure to bind file: %s", myproc.Errstr())
 	}
 
-	stat = myproc.Fstat(sc)
+	st = myproc.Chdir("consfs")
+	if st < 0 {
+		log.Fatalf("failure to chdir: %s", myproc.Errstr())
+	}
 
-	fmt.Printf("WOA: %v\n", *stat)
+	fmt.Printf("Changed directory!\n")
+
+	stat = myproc.Stat("../testdir")
+	if stat == nil {
+		fmt.Printf("failure to get testdir: %s\n", myproc.Errstr())
+	} else {
+		fmt.Printf("WOA: %v\n", *stat)
+	}
 
 }
