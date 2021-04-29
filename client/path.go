@@ -23,6 +23,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		els = els[1:]
 	}
 	cl := []*kchan{&rootChannel}
+	var canClunk bool
 
 	if pth == "." {
 		if estop {
@@ -56,12 +57,15 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 
 	for i, el := range els {
 		var initwalkres *kchan
-		var oldc *kchan
+		var cc *kchan
 
 		for _, c := range cl {
 			res, err := fWalk(c, mkFid(), []string{el})
 			if err == nil {
-				oldc = c
+				if canClunk {
+					fClunk(c)
+				}
+				cc = c
 				initwalkres = res
 				goto eval
 			}
@@ -72,24 +76,26 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		if el == ".." {
 			// result is one possible result, but we need
 			// to backwards-eval the mount table
-			trimmedinitialnm := path.Dir(oldc.name)
+			trimmedinitialnm := path.Dir(cc.name)
 			nmntres, err := p.mnt.reverseEval(initwalkres, trimmedinitialnm)
 			if err == nil {
 				cl = []*kchan{nmntres}
+				canClunk = false
 			} else {
 				cl = []*kchan{initwalkres}
+				canClunk = true
 			}
 		} else {
 			if i == len(els)-1 && estop {
 				cl = []*kchan{initwalkres}
+				canClunk = true // don't care
 			} else if ncl := p.mnt.forwardEval(initwalkres); len(ncl) > 0 {
 				cl = ncl
+				canClunk = false
 			} else {
 				cl = []*kchan{initwalkres}
+				canClunk = true
 			}
-		}
-		if i > 0 {
-			fClunk(oldc)
 		}
 	}
 
