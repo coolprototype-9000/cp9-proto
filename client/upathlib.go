@@ -98,6 +98,10 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 }
 
 func (p *Proc) Fd2Path(fd int) string {
+	if fd < 3 {
+		p.errstr = "No path for stdin/stdout/stderr"
+		return ""
+	}
 	if nm, ok := p.fdTbl[fd]; ok {
 		return nm.name
 	}
