@@ -44,6 +44,19 @@ func main() {
 		log.Fatalf("failure to bind consfs: %s", myproc.Errstr())
 	}
 
-	fmt.Printf("WOA\n")
+	stat := myproc.Stat("/consfs/listen")
+	if stat == nil {
+		log.Fatalf("failure to get listen: %s", myproc.Errstr())
+	}
+
+	sc := myproc.Create("testlisten", nine.ORDWR, nine.PUR|nine.PGR|nine.POR)
+	st = myproc.Bind("/consfs/listen", "testlisten", client.Replace)
+	if st < 0 {
+		log.Fatalf("failure to bind file: %s", myproc.Errstr())
+	}
+
+	stat = myproc.Fstat(sc)
+
+	fmt.Printf("WOA: %v\n", *stat)
 
 }

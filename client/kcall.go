@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/coolprototype-9000/cp9-proto/nine"
 )
@@ -70,7 +71,8 @@ func fWalk(onichan *kchan, newFid nine.Fid, wname []string) (*kchan, error) { //
 		for i := 0; i < len(wname); i++ {
 			nc.name += "/" + wname[i]
 		}
-		cleanPath(nc.name)
+		nc.name = cleanPath(nc.name)
+		fmt.Printf("nc.name: %s\n", nc.name)
 		return nc, nil
 	}
 

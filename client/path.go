@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"path"
 	"strings"
 )
@@ -86,6 +87,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 				canClunk = true
 			}
 		} else {
+			fmt.Printf("Evaluating: %v\n", *initwalkres)
 			if i == len(els)-1 && estop {
 				cl = []*kchan{initwalkres}
 				canClunk = true

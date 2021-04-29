@@ -2,6 +2,8 @@ package client
 
 import (
 	"path"
+
+	"github.com/coolprototype-9000/cp9-proto/nine"
 )
 
 func (p *Proc) Create(name string, mode byte, perm uint32) int {
@@ -32,4 +34,34 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 	nf := p.mkFd()
 	p.fdTbl[nf] = nc
 	return nf
+}
+
+func (p *Proc) Stat(name string) *nine.Stat {
+	kc, err := p.evaluate(name, false)
+	if err != nil {
+		p.errstr = "failed to evaluate name, no such file/dir?"
+		return nil
+	}
+	st, err := fStat(kc)
+	if err != nil {
+		p.errstr = err.Error()
+		return nil
+	}
+	return &st
+}
+
+func (p *Proc) Fstat(fd int) *nine.Stat {
+	// Can't just stat this path, because
+	// the path may have changed beneath us
+	kc, ok := p.fdTbl[fd]
+	if !ok {
+		p.errstr = "no such fd"
+		return nil
+	}
+	st, err := fStat(kc)
+	if err != nil {
+		p.errstr = err.Error()
+		return nil
+	}
+	return &st
 }
