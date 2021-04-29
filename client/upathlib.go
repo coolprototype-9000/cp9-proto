@@ -69,18 +69,30 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 		return -1
 	}
 
+	shouldDupe := true
+	for _, c := range p.mnt.forwardEval(oldc) {
+		if kchanCmp(c, oldc) {
+			shouldDupe = false
+			break
+		}
+	}
+
 	switch mode {
 	case Replace:
 		// bind oldc->nc first
 		p.mnt.bind(oldc, newc, true)
 	case After:
 		// bind oldc->oldc, THEN oldc->newc
-		p.mnt.bind(oldc, oldc, false)
+		if shouldDupe {
+			p.mnt.bind(oldc, oldc, false)
+		}
 		p.mnt.bind(oldc, newc, false)
 	case Before:
 		// bind oldc->newc, THEN oldc->oldc
+		if shouldDupe {
+			p.mnt.bind(oldc, oldc, false)
+		}
 		p.mnt.bind(oldc, newc, true)
-		p.mnt.bind(oldc, oldc, false)
 	}
 	return 0
 }
