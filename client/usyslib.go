@@ -21,5 +21,7 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 		p.errstr = err.Error()
 		return -1
 	}
-	return 0
+	nf := p.mkFd()
+	p.fdTbl[nf] = initc
+	return nf
 }

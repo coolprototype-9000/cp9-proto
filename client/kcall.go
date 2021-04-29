@@ -90,7 +90,7 @@ func fCreate(onichan *kchan, name string, perm uint32, mode byte) error {
 
 	err := checkMsg(res, nine.RCreate)
 	if err == nil {
-		onichan.name += "/" + name
+		onichan.name = cleanPath(onichan.name + "/" + name)
 		return nil
 	}
 	return errors.New("create failed")

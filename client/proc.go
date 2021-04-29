@@ -23,6 +23,7 @@ func MkProc(cwd *kchan, owner string) *Proc {
 		mnt:   mkFreshMountTable(),
 		cwd:   cwd,
 		owner: owner,
+		maxfd: 3,
 		fdTbl: make(map[int]*kchan),
 	}
 }
