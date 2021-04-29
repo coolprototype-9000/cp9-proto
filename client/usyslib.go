@@ -16,12 +16,17 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 		return -1
 	}
 
+	nc, err := fWalk(initc, mkFid(), []string{})
+	if err != nil {
+		p.errstr = "failed to dup fd"
+		return -1
+	}
 	newf := path.Base(name)
-	if fCreate(initc, newf, perm, mode) != nil {
+	if err := fCreate(nc, newf, perm, mode); err != nil {
 		p.errstr = err.Error()
 		return -1
 	}
 	nf := p.mkFd()
-	p.fdTbl[nf] = initc
+	p.fdTbl[nf] = nc
 	return nf
 }

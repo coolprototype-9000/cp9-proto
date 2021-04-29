@@ -65,7 +65,7 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 	}
 	oldc, err := p.evaluate(old, true)
 	if err != nil {
-		p.errstr = "failed to evaluate new path"
+		p.errstr = "failed to evaluate old path"
 		return -1
 	}
 

@@ -31,16 +31,19 @@ func main() {
 		log.Fatalf("failure to bind ramfs: %s", myproc.Errstr())
 	}
 
-	st = myproc.Bind("#c", "/", client.After)
+	st = myproc.Create("consfs", nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
+
+	if st < 0 {
+		log.Fatalf("failure to create: %s", myproc.Errstr())
+	} else {
+		fmt.Printf("File %s created with fd %d\n", myproc.Fd2Path(st), st)
+	}
+
+	st = myproc.Bind("#c", "/consfs", client.Replace)
 	if st < 0 {
 		log.Fatalf("failure to bind consfs: %s", myproc.Errstr())
 	}
 
-	st = myproc.Create("testf", nine.ORDWR, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
-	if st < 0 {
-		log.Fatalf("failure to create: %s", myproc.Errstr())
-	} else {
-		fmt.Printf("File %s created with fid %d\n", myproc.Fd2Path(st), st)
-	}
+	fmt.Printf("WOA\n")
 
 }

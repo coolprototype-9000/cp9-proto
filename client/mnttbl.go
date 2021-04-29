@@ -1,6 +1,8 @@
 package client
 
-import "errors"
+import (
+	"errors"
+)
 
 type mountPair struct {
 	from *kchan

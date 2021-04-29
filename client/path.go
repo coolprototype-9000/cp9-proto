@@ -19,6 +19,9 @@ func cleanPath(orig string) string {
 // to be clean, we do that just in case.
 func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 	els := strings.Split(cleanPath(pth), "/")
+	if els[0] == "" {
+		els = els[1:]
+	}
 	cl := []*kchan{&rootChannel}
 
 	if pth == "." {

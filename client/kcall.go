@@ -58,7 +58,7 @@ func fWalk(onichan *kchan, newFid nine.Fid, wname []string) (*kchan, error) { //
 	}
 
 	res := writeAndRead(onichan.c, &sf)
-	err := checkMsg(res, nine.RRead)
+	err := checkMsg(res, nine.RWalk)
 
 	if err == nil && len(wname) == len(res.Wqid) {
 		nc := &kchan{
@@ -70,6 +70,7 @@ func fWalk(onichan *kchan, newFid nine.Fid, wname []string) (*kchan, error) { //
 		for i := 0; i < len(wname); i++ {
 			nc.name += "/" + wname[i]
 		}
+		cleanPath(nc.name)
 		return nc, nil
 	}
 

@@ -92,7 +92,7 @@ func marshalQidList(q []Qid) []byte {
 
 func unmarshalQidList(b []byte) ([]Qid, []byte) {
 	ovrLen, b := unmarshalUint16(b)
-	buf := make([]Qid, ovrLen)
+	buf := make([]Qid, 0)
 	for i := 0; i < int(ovrLen); i++ {
 		var q Qid
 		q, b = unmarshalQid(b)
