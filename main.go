@@ -34,4 +34,10 @@ func main() {
 	if st < 0 {
 		log.Fatalf("failure to bind consfs: %s", myproc.Errstr())
 	}
+
+	st = myproc.Create("testf", nine.ORDWR, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
+	if st < 0 {
+		log.Fatalf("failure to create: %s", myproc.Errstr())
+	}
+
 }

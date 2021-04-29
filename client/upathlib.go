@@ -75,7 +75,7 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 		p.mnt.bind(oldc, newc, true)
 	case After:
 		// bind oldc->oldc, THEN oldc->newc
-		p.mnt.bind(oldc, oldc, true)
+		p.mnt.bind(oldc, oldc, false)
 		p.mnt.bind(oldc, newc, false)
 	case Before:
 		// bind oldc->newc, THEN oldc->oldc

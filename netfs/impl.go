@@ -145,7 +145,7 @@ func (c *NetFs) Open(conId uint64, f nine.Fid, mode byte) (nine.Qid, error) {
 
 	// Make initial permission validation check
 	fperm := c.checkPerms(id, fd.owner)
-	fmt.Printf("!!!!!!!!!! HELLO PRERMISSIONS ARE %v\n", fperm)
+	//	fmt.Printf("!!!!!!!!!! HELLO PRERMISSIONS ARE %v\n", fperm)
 	openTypeBits := mode & 0b11
 
 	if !fperm[0] && (openTypeBits == nine.OREAD || openTypeBits == nine.ORDWR) {
@@ -210,7 +210,7 @@ func (c *NetFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]b
 			ret = append(ret, sb...)
 		}
 
-		fmt.Printf("_____________READ_____________\n")
+		//		fmt.Printf("_____________READ_____________\n")
 		return ret, nil
 
 	} else if id == cloneId {

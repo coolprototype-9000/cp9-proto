@@ -238,7 +238,7 @@ func ServeForever(c *Conf) {
 		if err != nil {
 			log.Fatal("Failed to accept client TCP con:", err)
 		}
-		fmt.Printf("***accepted new tcpcon over port %d\n", c.Port)
+		//		fmt.Printf("***accepted new tcpcon over port %d\n", c.Port)
 
 		// Pass each session the request/response channels
 		go sessionMain(&conn, c.Fs, req, resp)

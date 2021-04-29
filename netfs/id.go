@@ -72,9 +72,9 @@ func ptrTypeToString(p ptrType) string {
 
 func (c *NetFs) genStat(id uint64) nine.Stat {
 	cid, tp := reduceId(id)
-	fmt.Printf("\tWALK: trying to get to %d/%d", cid, tp)
+	//	fmt.Printf("\tWALK: trying to get to %d/%d", cid, tp)
 	parent := c.cons[cid]
-	fmt.Printf("\tWALK: PARENT: %v", parent)
+	//	fmt.Printf("\tWALK: PARENT: %v", parent)
 	n := parent.children[tp]
 
 	if id == rootId {

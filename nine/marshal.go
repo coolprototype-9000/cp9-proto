@@ -2,7 +2,6 @@ package nine
 
 import (
 	"errors"
-	"fmt"
 )
 
 // marshalUint is used frequently
@@ -252,7 +251,7 @@ func unmarshalFCall(b []byte) FCall {
 	msgType, b := unmarshalUint8(b)
 	tag, b := unmarshalUint16(b)
 
-	fmt.Printf("Message metadata: %d, %d\n", msgType, tag)
+	//	fmt.Printf("Message metadata: %d, %d\n", msgType, tag)
 
 	f := FCall{MsgType: msgType, Tag: tag}
 

@@ -2,7 +2,6 @@ package netfs
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -86,7 +85,7 @@ func (ni *netInst) enterListeningState() error {
 	ni.s = listening
 	ni.cs = ""
 	ni.ln = &ln
-	fmt.Printf("YEEEEEET : Entered listening state%s\n", ni.cs)
+	//	fmt.Printf("YEEEEEET : Entered listening state%s\n", ni.cs)
 	return nil
 }
 
@@ -102,7 +101,7 @@ func (ni *netInst) acceptCon() (*net.Conn, error) {
 
 	l.SetDeadline(time.Now().Add(time.Millisecond))
 	c, err := (*ni.ln).Accept()
-	fmt.Printf("YEEEEEET : Accepted connection%s\n", ni.cs)
+	//	fmt.Printf("YEEEEEET : Accepted connection%s\n", ni.cs)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"path"
 	"strings"
 )
@@ -33,7 +32,6 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 			return p.cwd, nil
 		}
 	} else if pth == "/" {
-		fmt.Println("HERE")
 		if estop {
 			return &rootChannel, nil
 		} else {
@@ -86,6 +84,9 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 			} else {
 				cl = []*kchan{initwalkres}
 			}
+		}
+		if i > 0 {
+			fClunk(oldc)
 		}
 	}
 

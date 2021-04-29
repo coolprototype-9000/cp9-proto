@@ -1,8 +1,6 @@
 package ramfs
 
 import (
-	"fmt"
-
 	"github.com/coolprototype-9000/cp9-proto/nine"
 )
 
@@ -25,8 +23,6 @@ type RamFs struct {
 }
 
 func (r *RamFs) DumpFs() {
-	// LOLOL
-	fmt.Println("--------------------")
-	fmt.Printf("%v\n", *r)
-	fmt.Println("--------------------")
+	// Does nothing
+	//	//	fmt.Printf("Test")
 }

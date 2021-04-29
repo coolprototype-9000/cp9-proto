@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net"
 
@@ -36,14 +35,14 @@ func writeAndRead(c *net.Conn, f *nine.FCall) *nine.FCall {
 func checkMsg(f *nine.FCall, expected byte) error {
 	var err error
 	if f.MsgType == expected {
-		fmt.Printf("Success! ")
+		//		fmt.Printf("Success! ")
 		err = nil
 	} else {
-		fmt.Printf("FAILURE! ")
+		//		fmt.Printf("FAILURE! ")
 		err = errors.New("incorrect call gotten back, presuming failure")
 	}
 
-	fmt.Printf("Got message type %d\n", f.MsgType)
-	fmt.Printf("Full struct: %v\n", f)
+	//	fmt.Printf("Got message type %d\n", f.MsgType)
+	//	fmt.Printf("Full struct: %v\n", f)
 	return err
 }

@@ -2,7 +2,6 @@ package netfs
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -117,7 +116,7 @@ func (c *NetFs) descend(startID uint64, user string, target string) (uint64, err
 
 	if startID == rootId {
 		if target == "clone" {
-			fmt.Printf("HIIIIIIIIIIIIIIIIIIII\n")
+			//			fmt.Printf("HIIIIIIIIIIIIIIIIIIII\n")
 			return cloneId, nil
 		}
 		nid, err := strconv.ParseUint(target, 10, 64)
@@ -160,15 +159,15 @@ func (c *NetFs) checkPerms(id uint64, user string) []bool {
 	}
 	res := make([]bool, 3)
 
-	fmt.Printf("USER IS %s, UID IS %s\n", user, st.Uid)
+	//	fmt.Printf("USER IS %s, UID IS %s\n", user, st.Uid)
 	if st.Uid == user {
-		fmt.Printf("YEET user == uid\n")
+		//		fmt.Printf("YEET user == uid\n")
 		res[0] = (m & nine.PUR) > 0
 		res[1] = (m & nine.PUW) > 0
 		res[2] = (m & nine.PUX) > 0
 
 		if res[0] {
-			fmt.Printf("YEET we good fam\n")
+			//			fmt.Printf("YEET we good fam\n")
 		}
 	}
 	if st.Gid == user {
