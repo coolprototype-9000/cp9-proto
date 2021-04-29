@@ -31,43 +31,25 @@ func main() {
 		log.Fatalf("failure to bind ramfs: %s", myproc.Errstr())
 	}
 
-	myproc.Create("consfs", nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
-	st = myproc.Create("testdir", nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
-
-	if st < 0 {
-		log.Fatalf("failure to create: %s", myproc.Errstr())
-	} else {
-		fmt.Printf("File %s created with fd %d\n", myproc.Fd2Path(st), st)
+	names := []string{"disks", "home", "home/rob", "home/ken", "disks/disk1", "disks/disk2", "/disks/disk1/bin"}
+	for _, name := range names {
+		fd := myproc.Create(name, nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
+		if fd < 0 {
+			log.Fatalf("failed to create file: %d\n", fd)
+		}
 	}
 
-	st = myproc.Bind("#c", "/consfs", client.Replace)
-	if st < 0 {
-		log.Fatalf("failure to bind consfs: %s", myproc.Errstr())
+	fmt.Printf("Files created\n")
+	myproc.Bind("/disks/disk1", "/home/rob", client.Replace)
+	myproc.Bind("/disks/disk2", "/home/ken", client.Replace)
+
+	if myproc.Chdir("home/rob/bin") < 0 {
+		log.Fatalf("chdir failed")
 	}
+	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
 
-	stat := myproc.Stat("/consfs/listen")
-	if stat == nil {
-		log.Fatalf("failure to get listen: %s", myproc.Errstr())
+	if myproc.Chdir("../../ken") < 0 {
+		log.Fatalf("chdir failed")
 	}
-
-	myproc.Create("testlisten", nine.ORDWR, nine.PUR|nine.PGR|nine.POR)
-	st = myproc.Bind("/consfs/listen", "testlisten", client.Replace)
-	if st < 0 {
-		log.Fatalf("failure to bind file: %s", myproc.Errstr())
-	}
-
-	st = myproc.Chdir("consfs")
-	if st < 0 {
-		log.Fatalf("failure to chdir: %s", myproc.Errstr())
-	}
-
-	fmt.Printf("Changed directory!\n")
-
-	stat = myproc.Stat("../testdir")
-	if stat == nil {
-		fmt.Printf("failure to get testdir: %s\n", myproc.Errstr())
-	} else {
-		fmt.Printf("WOA: %v\n", *stat)
-	}
-
+	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
 }

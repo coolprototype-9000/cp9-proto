@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 )
 
 type mountPair struct {
@@ -60,8 +61,10 @@ func (m *mountTable) forwardEval(from *kchan) []*kchan {
 // Given a to entry, and a lexical name of a from directory
 // to search for, return a match if it exists
 func (m *mountTable) reverseEval(to *kchan, from string) (*kchan, error) {
+	fmt.Printf("Evaluating: %v -> %s\n", *to, from)
 	for _, mp := range m.tbl {
 		if kchanCmp(mp.to, to) {
+			fmt.Printf("**************: %s vs. %s\n", mp.from.name, from)
 			if mp.from.name == from {
 				return mp.from, nil
 			}

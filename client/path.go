@@ -19,7 +19,8 @@ func cleanPath(orig string) string {
 // post evaluation. The path does NOT have
 // to be clean, we do that just in case.
 func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
-	els := strings.Split(cleanPath(pth), "/")
+	cp := cleanPath(pth)
+	els := strings.Split(cp, "/")
 	if els[0] == "" {
 		els = els[1:]
 	}
@@ -91,8 +92,8 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 			// to backwards-eval the mount table
 			fmt.Printf("Dot dot res is %v\n", *initwalkres)
 			trimmedinitialnm := path.Dir(cc.name)
-			nmntres, err := p.mnt.reverseEval(cc, trimmedinitialnm)
-			if err == nil {
+			nmntres, err := p.mnt.reverseEval(initwalkres, trimmedinitialnm)
+			if err == nil && trimmedinitialnm != "/" {
 				cl = []*kchan{nmntres}
 				canClunk = false
 				fmt.Printf("No dot dot error\n")
@@ -102,12 +103,16 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 				fmt.Printf("Dot dot error\n")
 			}
 			fmt.Printf("Solved ..: proper parent is %v\n", *cl[0])
+
 		} else {
 			fmt.Printf("Evaluating: %v\n", *initwalkres)
 			if i == len(els)-1 && estop {
 				cl = []*kchan{initwalkres}
 				canClunk = true
 			} else if ncl := p.mnt.forwardEval(initwalkres); len(ncl) > 0 {
+				for i := range ncl {
+					ncl[i].name = initwalkres.name
+				}
 				cl = ncl
 				canClunk = false
 			} else {
@@ -127,5 +132,6 @@ done:
 		}
 		cl[0] = nn
 	}
+
 	return cl[0], nil
 }
