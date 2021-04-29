@@ -31,7 +31,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		} else {
 			cl = p.mnt.forwardEval(p.cwd)
 			if len(cl) > 0 {
-				return cl[0], nil
+				goto done
 			}
 			return p.cwd, nil
 		}
@@ -41,7 +41,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		} else {
 			cl = p.mnt.forwardEval(&rootChannel)
 			if len(cl) > 0 {
-				return cl[0], nil
+				goto done
 			}
 			return &rootChannel, nil
 		}
@@ -88,7 +88,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		} else {
 			if i == len(els)-1 && estop {
 				cl = []*kchan{initwalkres}
-				canClunk = true // don't care
+				canClunk = true
 			} else if ncl := p.mnt.forwardEval(initwalkres); len(ncl) > 0 {
 				cl = ncl
 				canClunk = false
@@ -98,6 +98,16 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 			}
 		}
 	}
-
+done:
+	if !canClunk {
+		// Dup the fid if it's a permanent ref in
+		// the mount table, so that the user can safely
+		// get rid of it
+		nn, err := fWalk(cl[0], mkFid(), []string{})
+		if err != nil {
+			return nil, errors.New("failed to dup fd")
+		}
+		cl[0] = nn
+	}
 	return cl[0], nil
 }

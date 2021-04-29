@@ -9,7 +9,7 @@ import (
 )
 
 var tag uint16 = 0
-var maxFid nine.Fid = 0
+var maxFid nine.Fid = 1
 
 func mkTag() uint16 {
 	tag++

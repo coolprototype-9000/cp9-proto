@@ -26,6 +26,9 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 		p.errstr = err.Error()
 		return -1
 	}
+	if !kchanCmp(initc, &rootChannel) && !kchanCmp(initc, p.cwd) {
+		fClunk(initc)
+	}
 	nf := p.mkFd()
 	p.fdTbl[nf] = nc
 	return nf
