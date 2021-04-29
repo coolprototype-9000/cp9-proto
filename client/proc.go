@@ -15,15 +15,35 @@ func (p *Proc) mkFd() int {
 	return p.maxfd - 1
 }
 
+func (p *Proc) isSpecialFd(fd int) bool {
+	n := p.fdTbl[fd]
+	switch n.name {
+	case "STDOUT":
+		return true
+	case "STDIN":
+		return true
+	case "STDERR":
+		return true
+	default:
+		return false
+	}
+}
+
 func MkProc(cwd *kchan, owner string) *Proc {
 	if cwd == nil {
 		cwd = &rootChannel
 	}
+
+	nfdtbl := make(map[int]*kchan)
+	nfdtbl[0] = &kchan{name: "STDIN"}
+	nfdtbl[1] = &kchan{name: "STDOUT"}
+	nfdtbl[2] = &kchan{name: "STDERR"}
+
 	return &Proc{
 		mnt:   mkFreshMountTable(),
 		cwd:   cwd,
 		owner: owner,
 		maxfd: 3,
-		fdTbl: make(map[int]*kchan),
+		fdTbl: nfdtbl,
 	}
 }
