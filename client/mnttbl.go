@@ -33,6 +33,7 @@ func (m *mountTable) unbind(from *kchan, to *kchan) error {
 	for i, mp := range m.tbl {
 		if kchanCmp(mp.from, from) {
 			if kchanCmp(mp.to, to) {
+				// from->to exists
 				m.tbl = append(m.tbl[:i], m.tbl[i+1:]...)
 				return nil
 			}

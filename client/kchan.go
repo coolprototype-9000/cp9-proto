@@ -13,7 +13,9 @@ type kchan struct {
 	fid  nine.Fid
 }
 
-var rootChannel kchan
+var rootChannel kchan = kchan{
+	name: "/",
+}
 
 // Two kchans are the "same" if the names
 // and networks are identical.

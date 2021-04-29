@@ -19,7 +19,7 @@ func fVersion(onichan *kchan, msize uint32, version string) (*kchan, error) {
 	res := writeAndRead(onichan.c, &sf)
 	err := checkMsg(res, nine.RVersion)
 
-	if err != nil {
+	if err == nil {
 		var nc kchan
 		nc.c = onichan.c
 		return &nc, nil
@@ -39,7 +39,7 @@ func fAttach(onichan *kchan, newFid nine.Fid, uname string, prefix string) error
 	res := writeAndRead(onichan.c, &sf) //Not sure if I'm returning the nine FCall or JUST the nc struct
 	err := checkMsg(res, nine.RAttach)
 
-	if err != nil {
+	if err == nil {
 		onichan.fid = newFid
 		onichan.name = prefix
 		return nil
@@ -60,7 +60,7 @@ func fWalk(onichan *kchan, newFid nine.Fid, wname []string) (*kchan, error) { //
 	res := writeAndRead(onichan.c, &sf)
 	err := checkMsg(res, nine.RRead)
 
-	if err != nil && len(wname) == len(res.Wqid) {
+	if err == nil && len(wname) == len(res.Wqid) {
 		nc := &kchan{
 			c:    onichan.c,
 			name: onichan.name,
@@ -89,7 +89,7 @@ func fCreate(onichan *kchan, name string, perm uint32, mode byte) error {
 	res := writeAndRead(onichan.c, &sf)
 
 	err := checkMsg(res, nine.RCreate)
-	if err != nil {
+	if err == nil {
 		onichan.name += "/" + name
 		return nil
 	}

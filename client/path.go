@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"path"
 	"strings"
 )
@@ -17,26 +18,49 @@ func cleanPath(orig string) string {
 // be garbage collected if it is not active
 // post evaluation. The path does NOT have
 // to be clean, we do that just in case.
-func (p *proc) evaluate(pth string, estop bool) (*kchan, error) {
+func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 	els := strings.Split(cleanPath(pth), "/")
 	cl := []*kchan{&rootChannel}
 
 	if pth == "." {
-		return p.cwd, nil
+		if estop {
+			return p.cwd, nil
+		} else {
+			cl = p.mnt.forwardEval(p.cwd)
+			if len(cl) > 0 {
+				return cl[0], nil
+			}
+			return p.cwd, nil
+		}
 	} else if pth == "/" {
-		return &rootChannel, nil
+		fmt.Println("HERE")
+		if estop {
+			return &rootChannel, nil
+		} else {
+			cl = p.mnt.forwardEval(&rootChannel)
+			if len(cl) > 0 {
+				return cl[0], nil
+			}
+			return &rootChannel, nil
+		}
 	} else if pth[0] != '/' {
-		cl = []*kchan{p.cwd}
+		if ncl := p.mnt.forwardEval(p.cwd); len(ncl) != 0 {
+			cl = ncl
+		}
+	} else {
+		if ncl := p.mnt.forwardEval(&rootChannel); len(ncl) != 0 {
+			cl = ncl
+		}
 	}
 
 	for i, el := range els {
 		var initwalkres *kchan
-		var oc *kchan
+		var oldc *kchan
 
 		for _, c := range cl {
 			res, err := fWalk(c, mkFid(), []string{el})
 			if err == nil {
-				oc = c
+				oldc = c
 				initwalkres = res
 				goto eval
 			}
@@ -47,7 +71,7 @@ func (p *proc) evaluate(pth string, estop bool) (*kchan, error) {
 		if el == ".." {
 			// result is one possible result, but we need
 			// to backwards-eval the mount table
-			trimmedinitialnm := path.Dir(oc.name)
+			trimmedinitialnm := path.Dir(oldc.name)
 			nmntres, err := p.mnt.reverseEval(initwalkres, trimmedinitialnm)
 			if err == nil {
 				cl = []*kchan{nmntres}
@@ -57,7 +81,7 @@ func (p *proc) evaluate(pth string, estop bool) (*kchan, error) {
 		} else {
 			if i == len(els)-1 && estop {
 				cl = []*kchan{initwalkres}
-			} else if ncl := p.mnt.forwardEval(initwalkres); ncl != nil {
+			} else if ncl := p.mnt.forwardEval(initwalkres); len(ncl) > 0 {
 				cl = ncl
 			} else {
 				cl = []*kchan{initwalkres}
