@@ -10,10 +10,16 @@ import (
 )
 
 var tag uint16 = 0
+var maxFid nine.Fid = 0
 
 func mkTag() uint16 {
 	tag++
 	return tag - 1
+}
+
+func mkFid() nine.Fid {
+	maxFid++
+	return maxFid - 1
 }
 
 func writeAndRead(c *net.Conn, f *nine.FCall) *nine.FCall {

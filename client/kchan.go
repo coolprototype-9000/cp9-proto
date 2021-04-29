@@ -19,7 +19,7 @@ var rootChannel kchan
 // and networks are identical.
 // Since kchans use full lexical names, this
 // works for bind mounts.
-func kchanCmp(a kchan, b kchan) bool {
+func kchanCmp(a *kchan, b *kchan) bool {
 	if a.name == b.name && a.c == b.c {
 		return true
 	}

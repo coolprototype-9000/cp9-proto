@@ -15,6 +15,6 @@ func parseDevMnt(sp string) (uint16, error) {
 	case "#n":
 		return nine.DevNet, nil
 	default:
-		return 0, errors.New("illegal special mount, detected # but no device match")
+		return 0, errors.New("illegal special mount")
 	}
 }

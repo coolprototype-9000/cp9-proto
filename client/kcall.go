@@ -2,13 +2,12 @@ package client
 
 import (
 	"errors"
-	"net"
 
 	"github.com/coolprototype-9000/cp9-proto/nine"
 )
 
 // Initiates a 9P connection with unbounded message size
-func fVersion(c *net.Conn, msize uint32, version string) (*kchan, error) {
+func fVersion(onichan *kchan, msize uint32, version string) (*kchan, error) {
 	sf := nine.FCall{
 		MsgType: nine.TVersion,
 		Tag:     mkTag(),
@@ -17,12 +16,12 @@ func fVersion(c *net.Conn, msize uint32, version string) (*kchan, error) {
 	}
 
 	// Send, recv, print
-	res := writeAndRead(c, &sf)
+	res := writeAndRead(onichan.c, &sf)
 	err := checkMsg(res, nine.RVersion)
 
 	if err != nil {
 		var nc kchan
-		nc.c = c
+		nc.c = onichan.c
 		return &nc, nil
 	}
 	return &kchan{}, errors.New("version failed")
