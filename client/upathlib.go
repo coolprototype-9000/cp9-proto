@@ -142,8 +142,8 @@ func (p *Proc) Unmount(name string, old string) int {
 	// We can abuse our invariant and check through
 	// the fd table of our process to see if any lexical
 	// descendents, INCLUDING CWD AND ROOT, are in use
-	ss := newc.name
-	if strings.Contains(p.cwd.name, ss) || strings.Contains(rootChannel.name, ss) {
+	ss := oldc.name
+	if len(p.cwd.name) >= len(ss) && p.cwd.name[:len(ss)] == ss || ss == "/" {
 		p.errstr = "device is busy"
 		return -1
 	} else {

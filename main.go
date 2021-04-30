@@ -61,7 +61,7 @@ func main() {
 	if myproc.Unmount("/disks/disk1", "/home/rob") < 0 {
 		fmt.Printf("Failed as we should NOT have: %s\n", myproc.Errstr())
 	}
-	if myproc.Unmount("/disks/disk1", "/home/ken") < 0 {
+	if myproc.Unmount("/disks/disk2", "/home/ken") < 0 {
 		fmt.Printf("Failed as we should NOT have: %s\n", myproc.Errstr())
 	}
 	log.Fatal("umount did not fail!!")

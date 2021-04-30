@@ -35,11 +35,10 @@ func (m *mountTable) bind(from *kchan, to *kchan, first bool) {
 // Unbind, returning an error if no such mapping exists
 func (m *mountTable) unbind(from *kchan, to *kchan) error {
 	for i, mp := range m.tbl {
-		fmt.Printf("*: %v -> %v vs. %v -> %v\n", *from, *to, *mp.from, *mp.to)
 		if kchanCmp(mp.from, from) {
 			if kchanCmp(mp.to, to) {
 				// from->to exists
-				fmt.Printf("*")
+				fmt.Printf("*: %v -> %v\n", *mp.from, *mp.to)
 				m.tbl = append(m.tbl[:i], m.tbl[i+1:]...)
 				return nil
 			}
