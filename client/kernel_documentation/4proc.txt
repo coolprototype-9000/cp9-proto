@@ -25,3 +25,11 @@ fields are kept private from the user (notice the lowercase), as
 are internal kernel functions. This way we can pass the proc to the
 user to use as a handle into CP9 without giving away how we work on
 the inside.
+
+A new process with an empty namespace is created using MkProc(). The
+cwd argument can be left nil, in which case the proc starts in the root
+directory. You should really bind a filesystem over the root
+before you start using it - if you try to fcall the bare root chan,
+it will segfault. Fortunately, evaluate() ensures that it never
+returns the root kchan unless nothing is bound over it, instead returning
+the root kchan of whatever fs is bound over it (e.g. ramfs).
