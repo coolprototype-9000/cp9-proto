@@ -37,6 +37,10 @@ func main() {
 		if fd < 0 {
 			log.Fatalf("failed to create file: %d\n", fd)
 		}
+		fd = myproc.Close(fd)
+		if fd < 0 {
+			log.Fatalf("failed to close file: %s\n", myproc.Errstr())
+		}
 	}
 
 	fmt.Printf("Files created\n")
@@ -52,4 +56,10 @@ func main() {
 		log.Fatalf("chdir failed")
 	}
 	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
+
+	// Try to unmount, should fail
+	if myproc.Unmount("/disks/disk1", "/home/rob") < 0 {
+		fmt.Printf("Failed as we should NOT have: %s\n", myproc.Errstr())
+	}
+	log.Fatal("umount did not fail")
 }

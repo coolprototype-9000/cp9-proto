@@ -78,3 +78,20 @@ func (p *Proc) Chdir(pathname string) int {
 	p.cwd = ncwd
 	return 0
 }
+
+func (p *Proc) Close(fd int) int {
+	kc, ok := p.fdTbl[fd]
+	if !ok {
+		p.errstr = "no such fd"
+		return -1
+	}
+
+	// We have an invariant that created/opened
+	// fds are dupped, so deleting blindly is fine
+	// and won't impact the mount table. The exception
+	// to this invariant is currently the std*s, but
+	// these don't hit the mount table.
+	fClunk(kc)
+	delete(p.fdTbl, fd)
+	return 0
+}

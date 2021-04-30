@@ -29,14 +29,17 @@ func (m *mountTable) bind(from *kchan, to *kchan, first bool) {
 	} else {
 		m.tbl = append([]mountPair{np}, m.tbl...)
 	}
+	fmt.Printf("!: %v -> %v\n", *from, *to)
 }
 
 // Unbind, returning an error if no such mapping exists
 func (m *mountTable) unbind(from *kchan, to *kchan) error {
 	for i, mp := range m.tbl {
+		fmt.Printf("*: %v -> %v vs. %v -> %v\n", *from, *to, *mp.from, *mp.to)
 		if kchanCmp(mp.from, from) {
 			if kchanCmp(mp.to, to) {
 				// from->to exists
+				fmt.Printf("*")
 				m.tbl = append(m.tbl[:i], m.tbl[i+1:]...)
 				return nil
 			}
@@ -52,7 +55,9 @@ func (m *mountTable) forwardEval(from *kchan) []*kchan {
 	results := []*kchan{}
 	for _, mp := range m.tbl {
 		if kchanCmp(mp.from, from) {
-			results = append(results, mp.to)
+			var nc *kchan = new(kchan)
+			*nc = *mp.to
+			results = append(results, nc)
 		}
 	}
 	return results
@@ -61,12 +66,14 @@ func (m *mountTable) forwardEval(from *kchan) []*kchan {
 // Given a to entry, and a lexical name of a from directory
 // to search for, return a match if it exists
 func (m *mountTable) reverseEval(to *kchan, from string) (*kchan, error) {
-	fmt.Printf("Evaluating: %v -> %s\n", *to, from)
 	for _, mp := range m.tbl {
+		fmt.Printf("%v -> %v\n", *mp.from, *mp.to)
 		if kchanCmp(mp.to, to) {
-			fmt.Printf("**************: %s vs. %s\n", mp.from.name, from)
+			fmt.Printf("*********: %v -> %s?\n", to, from)
 			if mp.from.name == from {
-				return mp.from, nil
+				var nc *kchan
+				*nc = *mp.from
+				return nc, nil
 			}
 		}
 	}

@@ -94,7 +94,6 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 		}
 		p.mnt.bind(oldc, newc, true)
 	}
-	fmt.Printf("BOUND %v -> %v\n", *oldc, *newc)
 	return 0
 }
 
@@ -117,7 +116,7 @@ func (p *Proc) Unmount(name string, old string) int {
 	// Check whether we are unmounting a local device
 	_, err := parseDevMnt(name)
 	_, err2 := parseDevMnt(old)
-	if err == nil || err2 != nil {
+	if err == nil || err2 == nil {
 		p.errstr = "currently unsupported"
 		return -1
 	}
