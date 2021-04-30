@@ -78,4 +78,21 @@ func main() {
 	if myproc.Remove("/disks/disk1") < 0 {
 		fmt.Printf("Remove failed as it should NOT have: %s\n", myproc.Errstr())
 	}
+
+	// Write some files!
+	fd := myproc.Create("asdf", nine.OREAD, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
+	myproc.Close(fd)
+	fd = myproc.Open("asdf", nine.ORDWR)
+	if fd < 0 {
+		log.Fatalf("Failure: %s\n", myproc.Errstr())
+	}
+	myproc.Write(fd, "hello")
+	myproc.Write(fd, " world!")
+	myproc.Close(fd)
+	fd = myproc.Open("asdf", nine.OREAD)
+	res := myproc.Read(fd, 100)
+	if res == "" {
+		log.Fatalf("Early failure: %s\n", myproc.Errstr())
+	}
+	fmt.Printf("RESULT: %s\n", res)
 }

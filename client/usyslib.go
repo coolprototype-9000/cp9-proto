@@ -33,6 +33,7 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 	}
 	nf := p.mkFd()
 	p.fdTbl[nf] = nc
+	p.seekTbl[nf] = 0
 	return nf
 }
 
@@ -93,6 +94,7 @@ func (p *Proc) Close(fd int) int {
 	// these don't hit the mount table.
 	fClunk(kc)
 	delete(p.fdTbl, fd)
+	delete(p.seekTbl, fd)
 	return 0
 }
 
@@ -126,4 +128,63 @@ func (p *Proc) Remove(file string) int {
 		return -1
 	}
 	return 0
+}
+
+func (p *Proc) Open(file string, mode byte) int {
+	kc, err := p.evaluate(file, false)
+	if err != nil {
+		p.errstr = "no such file or directory"
+		return -1
+	}
+
+	nc, err := fWalk(kc, mkFid(), []string{})
+	if err != nil {
+		p.errstr = "failed to dup fid for open"
+		return -1
+	}
+
+	if err := fOpen(nc, mode); err != nil {
+		p.errstr = err.Error()
+		return -1
+	}
+
+	if !kchanCmp(kc, &rootChannel) && !kchanCmp(kc, p.cwd) {
+		fClunk(kc)
+	}
+	nf := p.mkFd()
+	p.fdTbl[nf] = nc
+	p.seekTbl[nf] = 0
+	return nf
+}
+
+func (p *Proc) Read(fd int, count uint32) string {
+	kc, ok := p.fdTbl[fd]
+	if !ok {
+		p.errstr = "no such fd"
+		return ""
+	}
+
+	b, err := fRead(kc, p.seekTbl[fd], count)
+	if err != nil {
+		p.errstr = err.Error()
+		return ""
+	}
+	p.seekTbl[fd] += uint64(len(b))
+	return string(b)
+}
+
+func (p *Proc) Write(fd int, data string) int {
+	kc, ok := p.fdTbl[fd]
+	if !ok {
+		p.errstr = "no such fd"
+		return -1
+	}
+
+	cnt, err := fWrite(kc, p.seekTbl[fd], data)
+	if err != nil {
+		p.errstr = err.Error()
+		return -1
+	}
+	p.seekTbl[fd] += uint64(cnt)
+	return int(cnt)
 }
