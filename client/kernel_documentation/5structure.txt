@@ -1,0 +1,8 @@
+Structure
+
+System calls that are not bind/mount/unmount/fd2path go in
+usyslib.go. These are exported to clients with capital letters as
+discussed. uerrlib contains errstr, and upathlib has the above list
+of exceptions.
+
+Per-syscall docs are located in the user_documentation folder.

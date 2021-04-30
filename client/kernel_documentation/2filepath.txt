@@ -1,0 +1,41 @@
+The mount table
+
+CP9's namespace is composited across multiple file servers (and many kchans)
+using a mount table.  The mount table is little more than a collection of
+ordered pairs on the inside, but allows for powerful abstractions.
+
+The mount table is accessed by the bind, mount, and unmount system calls.
+The descriptions of these are linked to in the syscall.txt documentation
+page.  Currently, bind and unmount are implemented (unmount partially so).
+
+Recommended reading: https://9p.io/sys/doc/lexnames.html.  This documents our
+mount table and our path evaluation scheme.  Read it to understand the 9P
+model, which we emulate.  We will illustrate the library calls below.
+
+In path.go, cleanPath() implements the iterative path cleaning algorithm
+described in the article.  evaluate() implements the algorithm to evaluate a
+name, including dot dots (applying their algorithm using the mount table,
+factoring in binds etc.), evaluate() returns a fresh kchan that you can clunk
+as long as it is not your current working directory (see proc.txt) and not
+the client-side root directory.
+
+In order to modify the mount table (or manually interact with it), use p.mnt
+which represents the most up to date mount table for your process (see
+proc.txt).  p.mnt supports the following API:
+
+-> bind()
+-> unbind()
+-> forwardEval()
+-> reverseEval()
+
+forwardEval() and reverseEval() perform the functions described in the 9P
+article: forwardEval() finds the first tofile that comes from a fromfile, and
+reverseEval() finds a matching fromfile that points to a given tofile.  Bind
+adds a mapping to the mount table, with a boolean set to whether it is
+prepended or appended (this is used in the bind syscall), and unbind undoes a
+bind.
+
+Path-related system calls can be found in upathlib.go. bind() is implemented,
+as are unmount() and fd2path() per the article. The pattern of opening "." and
+calling fd2path is used extensively in testing to verify that bind() and unmount()
+work as intended.

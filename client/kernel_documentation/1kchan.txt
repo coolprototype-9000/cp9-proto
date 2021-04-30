@@ -1,0 +1,42 @@
+The kchan: low level mechanics
+
+CP9's client library uses an abstraction called a kchan (for kernel channel)
+to hide 9P connections from syscall developers.  Every kchan represents a
+network connectios to some file server, pointed at some specific file.
+Kchans can be opened and read from, written to, etc., and can also be
+"walked" around a server, which constitutes moving them to point at different
+files.
+
+Kchans are declared inside kchan.go:
+
+``` type kchan struct { name string phyName string c *net.Conn fid nine.Fid }
+```
+
+Every kchan has a name and a phyName.  The phyName represents the absolute,
+physical, rooted filename the kchan references on the server side.  For
+instance, if I had a consfs mounted at /consfs/, and I pointed a kchan at
+/consfs/listen, our phyName would be /listen since this is the name of the
+file on the server side.
+
+By contrast, the name of the kchan is the absolute, physical, rooted filepath
+on the *client* side.  This means, using the above example, the kchan's name
+is /consfs/listen.  This invariant is upheld throughout CP9 code, and is
+particularly useful when discussing mounts and binds (which is in 2.txt).
+
+Interacting with a kchan's pointed-to files is accomplished by calling f* on
+it, where * is any of the calls in kcall.go.  As you may have guessed, I've
+taken to calling these kcalls for short.  Most of the system calls that take
+complex interaction with kchans have already been written, but some simple
+kchan interactions still may be required to figure out.
+
+Consult the 9P manual at http://man2.aiju.de/5 to learn more about what each
+kcall does, as these calls map one to one to 9P calls on the network. Most
+of the critical syscalls will not require you to use these, with the exception
+of WStat and FWstat (which there's an fWstat kcall for - see kcall.go).
+
+When you are done with a kchan, clunk it. This saves resources on the server.
+Making sure you're *able* to clunk the kchan is important, because if you clunk
+one kchan another kchan with similar internal values could suddenly stop
+pointing at the file server. Generally, most library calls are written in CP9
+such that if the kchan is not your current working directory (see proc.txt) and
+doesn't refer to '/', it can be clunked by you when you're done.

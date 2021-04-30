@@ -1,0 +1,32 @@
+File descriptors
+
+File descriptors are just like they are in UNIX - integers
+that represent files for users. Users don't want to muck around
+with kchans, so a file descriptor is just a frontend to one.
+
+Each process maintains a mapping of file descriptor -> kchan.
+Each process also maintains file descriptor -> seek pointer mappings,
+so that read/write/seek can work as intended, and seek in particular
+may not have to hit the server.
+
+Several system calls accept file descriptors -- calls that accept
+file descriptors can refer to the kchan's underlying phyName and name
+to determine where it points, and manipulate that kchan to perform
+operations on behalf of the client. See the user documentation for more
+on what these calls should do.
+
+New fds are generated using p.mkFd(). There are three special fds:
+stdout, stdin, and stderr. These are defined and checked for
+inside proc.go (isSpecialFd()). Calls that manipulate file descriptors
+have to be careful, because these fds point to dummy kchans that
+have no underlying network connection (by fail fast principle, CP9 will
+segfault if you attempt to call kcalls on them). Read and write syscalls
+currently do not use these fds, but they should -- if you're looking
+for something to do, make sure read/write intercept these appropriately
+and handle them by either reading a line or printing out stuff.
+
+Mount allows a 9P connection to be started over an fd (e.g. one that
+maps to a kchan pointed into netfs, i.e. a network connection). This
+allows us to mount other people into our own namespace. This call is not
+complete, however. If you want to do it, ask me and I'll give u more info
+ - it's very similar to bind!

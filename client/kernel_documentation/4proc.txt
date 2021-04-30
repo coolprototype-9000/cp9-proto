@@ -1,0 +1,27 @@
+Processes
+
+The declaration of a process is in proc.go. Each process has
+a mount table, an owner (username), a current working directory,
+a few parameters for fd generation (new), fd tables and seek tables,
+and an errstr.
+
+Users can get information on how their process has
+failed most recently by calling p.errstr(), which is in uerrlib.go
+and returns the value of p.errstr after clearing it. Any system call
+which fails should set errstr so that clients can diagnose what
+happened without relying on a funky function signature or weird constants
+like in Linux.
+
+Each process maintains a collection of active files -- the sum of
+the mount table's contents, the fdTbl's contents, the cwd, and
+the root. The cwd is the current working directory, and as discussed
+care should be taken to not clunk the cwd when writing syscalls. All
+relative path names that evaluate() is called on will use the cwd
+as their starting point.
+
+The user uses the process to make system calls, which are exported
+(e.g. capital first leader: Read(), Write() ...). Internal proc
+fields are kept private from the user (notice the lowercase), as
+are internal kernel functions. This way we can pass the proc to the
+user to use as a handle into CP9 without giving away how we work on
+the inside.

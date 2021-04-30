@@ -1,0 +1,9 @@
+All system calls are documented here (with some slight name changes):
+https://aiju.de/plan_9/plan9-syscalls
+
+We are co-opting the plan 9 api since it is an easy-to-understand
+subset of POSIX with no networking (our netfs handles networking w/
+traditional r/w syscalls). If you need to write a syscall, use this
+to figure out what your behavior should be. If you need to use a syscall,
+this is enough for you (along with inspecting usyslib/upathlib/uerrlib for
+any odd implementation details)
