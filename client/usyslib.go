@@ -97,7 +97,7 @@ func (p *Proc) Close(fd int) int {
 }
 
 func (p *Proc) Remove(file string) int {
-	kc, err := p.evaluate(file, true)
+	kc, err := p.evaluate(file, false)
 	if err != nil {
 		p.errstr = "no such file or directory"
 		return -1
