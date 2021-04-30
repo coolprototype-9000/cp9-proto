@@ -8,9 +8,10 @@ import (
 
 // Immutable data type
 type kchan struct {
-	name string
-	c    *net.Conn
-	fid  nine.Fid
+	name    string
+	phyName string
+	c       *net.Conn
+	fid     nine.Fid
 }
 
 var rootChannel kchan = kchan{
@@ -22,7 +23,7 @@ var rootChannel kchan = kchan{
 // Since kchans use full lexical names, this
 // works for bind mounts.
 func kchanCmp(a *kchan, b *kchan) bool {
-	if a.name == b.name && a.c == b.c {
+	if a.phyName == b.phyName && a.c == b.c {
 		return true
 	}
 	return false

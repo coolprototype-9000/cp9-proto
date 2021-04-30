@@ -42,6 +42,7 @@ func fAttach(onichan *kchan, newFid nine.Fid, uname string, prefix string) error
 	if err == nil {
 		onichan.fid = newFid
 		onichan.name = prefix
+		onichan.phyName = "/"
 		return nil
 	}
 	return errors.New("attach failed")
@@ -62,15 +63,18 @@ func fWalk(onichan *kchan, newFid nine.Fid, wname []string) (*kchan, error) { //
 
 	if err == nil && len(wname) == len(res.Wqid) {
 		nc := &kchan{
-			c:    onichan.c,
-			name: onichan.name,
-			fid:  newFid,
+			c:       onichan.c,
+			name:    onichan.name,
+			phyName: onichan.phyName,
+			fid:     newFid,
 		}
 
 		for i := 0; i < len(wname); i++ {
 			nc.name += "/" + wname[i]
+			nc.phyName += "/" + wname[i]
 		}
 		nc.name = cleanPath(nc.name)
+		nc.phyName = cleanPath(nc.phyName)
 		return nc, nil
 	}
 
@@ -92,6 +96,7 @@ func fCreate(onichan *kchan, name string, perm uint32, mode byte) error {
 	err := checkMsg(res, nine.RCreate)
 	if err == nil {
 		onichan.name = cleanPath(onichan.name + "/" + name)
+		onichan.phyName = cleanPath(onichan.phyName + "/" + name)
 		return nil
 	}
 	return errors.New("create failed")

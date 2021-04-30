@@ -67,11 +67,10 @@ func (m *mountTable) forwardEval(from *kchan) []*kchan {
 // to search for, return a match if it exists
 func (m *mountTable) reverseEval(to *kchan, from string) (*kchan, error) {
 	for _, mp := range m.tbl {
-		fmt.Printf("%v -> %v\n", *mp.from, *mp.to)
 		if kchanCmp(mp.to, to) {
-			fmt.Printf("*********: %v -> %s?\n", to, from)
 			if mp.from.name == from {
-				var nc *kchan
+				fmt.Printf("%v -> %v\n", *mp.from, *mp.to)
+				var nc *kchan = new(kchan)
 				*nc = *mp.from
 				return nc, nil
 			}
