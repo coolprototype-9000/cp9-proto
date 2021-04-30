@@ -62,7 +62,20 @@ func main() {
 		fmt.Printf("Failed as we should NOT have: %s\n", myproc.Errstr())
 	}
 	if myproc.Unmount("/disks/disk2", "/home/ken") < 0 {
-		fmt.Printf("Failed as we should NOT have: %s\n", myproc.Errstr())
+		fmt.Printf("Failed as we should have: %s\n", myproc.Errstr())
 	}
-	log.Fatal("umount did not fail!!")
+
+	if myproc.Chdir("../rob/bin") < 0 {
+		fmt.Printf("Failed as we should have: %s\n", myproc.Errstr())
+	}
+
+	if myproc.Remove("/disks/disk2") < 0 {
+		fmt.Printf("Remove failed as it should have: %s\n", myproc.Errstr())
+	}
+	if myproc.Remove("/home/") < 0 {
+		fmt.Printf("Remove failed as it should have: %s\n", myproc.Errstr())
+	}
+	if myproc.Remove("/disks/disk1") < 0 {
+		fmt.Printf("Remove failed as it should NOT have: %s\n", myproc.Errstr())
+	}
 }

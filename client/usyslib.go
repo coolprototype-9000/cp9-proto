@@ -95,3 +95,35 @@ func (p *Proc) Close(fd int) int {
 	delete(p.fdTbl, fd)
 	return 0
 }
+
+func (p *Proc) Remove(file string) int {
+	kc, err := p.evaluate(file, true)
+	if err != nil {
+		p.errstr = "no such file or directory"
+		return -1
+	}
+
+	// This'll work no matter what -- "phase errors"
+	// However, if the entry is in the bind table, we'll balk
+	// to prevent weird situations
+	// We'll also prevent if you from removing over yourself
+	// The server should prevent removal of populated dirs
+	for _, mpr := range p.mnt.tbl {
+		if kchanCmp(mpr.from, kc) || kchanCmp(mpr.to, kc) {
+			p.errstr = "file is busy / mounted"
+			return -1
+		}
+	}
+
+	ss := kc.name
+	if len(p.cwd.name) >= len(ss) && p.cwd.name[:len(ss)] == ss || ss == "/" {
+		p.errstr = "you are using this file as an ancestor of/as your cwd"
+		return -1
+	}
+
+	if fRemove(kc) != nil {
+		p.errstr = err.Error()
+		return -1
+	}
+	return 0
+}
