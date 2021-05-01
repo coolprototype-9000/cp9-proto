@@ -6,7 +6,7 @@ type Proc struct {
 	owner   string
 	cwd     *kchan
 	maxfd   int
-	fdTbl   map[int]*kchan
+	fdTbl   map[int][]*kchan
 	seekTbl map[int]uint64
 	errstr  string
 }
@@ -17,7 +17,7 @@ func (p *Proc) mkFd() int {
 }
 
 func (p *Proc) isSpecialFd(fd int) bool {
-	n := p.fdTbl[fd]
+	n := p.fdTbl[fd][0]
 	switch n.name {
 	case "STDOUT":
 		return true
@@ -35,10 +35,10 @@ func MkProc(cwd *kchan, owner string) *Proc {
 		cwd = &rootChannel
 	}
 
-	nfdtbl := make(map[int]*kchan)
-	nfdtbl[0] = &kchan{name: "STDIN"}
-	nfdtbl[1] = &kchan{name: "STDOUT"}
-	nfdtbl[2] = &kchan{name: "STDERR"}
+	nfdtbl := make(map[int][]*kchan)
+	nfdtbl[0] = []*kchan{&kchan{name: "STDIN"}}
+	nfdtbl[1] = []*kchan{&kchan{name: "STDOUT"}}
+	nfdtbl[2] = []*kchan{&kchan{name: "STDERR"}}
 
 	return &Proc{
 		mnt:     mkFreshMountTable(),

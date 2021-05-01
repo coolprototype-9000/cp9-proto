@@ -1,6 +1,9 @@
 package client
 
 import (
+	"bufio"
+	"fmt"
+	"os"
 	"path"
 
 	"github.com/coolprototype-9000/cp9-proto/nine"
@@ -23,6 +26,7 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 		p.errstr = "failed to dup fd"
 		return -1
 	}
+
 	newf := path.Base(name)
 	if err := fCreate(nc, newf, perm, mode); err != nil {
 		p.errstr = err.Error()
@@ -32,7 +36,8 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 		fClunk(initc)
 	}
 	nf := p.mkFd()
-	p.fdTbl[nf] = nc
+	p.fdTbl[nf] = make([]*kchan, 1)
+	p.fdTbl[nf][0] = nc
 	p.seekTbl[nf] = 0
 	return nf
 }
@@ -59,7 +64,13 @@ func (p *Proc) Fstat(fd int) *nine.Stat {
 		p.errstr = "no such fd"
 		return nil
 	}
-	st, err := fStat(kc)
+
+	if p.isSpecialFd(fd) {
+		p.errstr = "can't stat stdout/stderr/stdin"
+		return nil
+	}
+
+	st, err := fStat(kc[0])
 	if err != nil {
 		p.errstr = err.Error()
 		return nil
@@ -87,12 +98,20 @@ func (p *Proc) Close(fd int) int {
 		return -1
 	}
 
+	if p.isSpecialFd(fd) {
+		goto donenet
+	}
+
 	// We have an invariant that created/opened
 	// fds are dupped, so deleting blindly is fine
 	// and won't impact the mount table. The exception
 	// to this invariant is currently the std*s, but
 	// these don't hit the mount table.
-	fClunk(kc)
+	for _, ent := range kc {
+		fClunk(ent)
+	}
+
+donenet:
 	delete(p.fdTbl, fd)
 	delete(p.seekTbl, fd)
 	return 0
@@ -131,56 +150,137 @@ func (p *Proc) Remove(file string) int {
 }
 
 func (p *Proc) Open(file string, mode byte) int {
-	kc, err := p.evaluate(file, false)
+	// Head to the file, but don't make the final deref
+	// in case this is a union directory or union file
+	kcs := make([]*kchan, 1)
+	kc, err := p.evaluate(file, true)
 	if err != nil {
 		p.errstr = "no such file or directory"
 		return -1
 	}
+	kcs[0] = kc
 
-	nc, err := fWalk(kc, mkFid(), []string{})
+	// Stat
+	st, err := fStat(kc)
 	if err != nil {
-		p.errstr = "failed to dup fid for open"
+		p.errstr = "failed to stat file"
 		return -1
 	}
 
-	if err := fOpen(nc, mode); err != nil {
-		p.errstr = err.Error()
-		return -1
+	if st.Q.Flags&nine.FDir > 0 {
+		// Run the last forward eval ourselves
+		kcl := p.mnt.forwardEval(kc)
+		if len(kcl) > 0 {
+			kcs = kcl
+		}
 	}
 
-	if !kchanCmp(kc, &rootChannel) && !kchanCmp(kc, p.cwd) {
-		fClunk(kc)
+	for _, kc := range kcs {
+		nc, err := fWalk(kc, mkFid(), []string{})
+		if err != nil {
+			p.errstr = "failed to dup fid for open"
+			return -1
+		}
+
+		if err := fOpen(nc, mode); err != nil {
+			p.errstr = err.Error()
+			return -1
+		}
+
+		if !kchanCmp(kc, &rootChannel) && !kchanCmp(kc, p.cwd) {
+			fClunk(kc)
+		}
+
 	}
 	nf := p.mkFd()
-	p.fdTbl[nf] = nc
+	p.fdTbl[nf] = kcs
 	p.seekTbl[nf] = 0
 	return nf
 }
 
 func (p *Proc) Read(fd int, count uint32) string {
-	kc, ok := p.fdTbl[fd]
+	kcs, ok := p.fdTbl[fd]
 	if !ok {
 		p.errstr = "no such fd"
 		return ""
 	}
 
-	b, err := fRead(kc, p.seekTbl[fd], count)
-	if err != nil {
-		p.errstr = err.Error()
-		return ""
+	if p.isSpecialFd(fd) {
+		switch kcs[0].name {
+		case "STDIN":
+			rdr := bufio.NewReader(os.Stdin)
+			txt, _ := rdr.ReadString('\n')
+			if len(txt) > int(count) {
+				txt = txt[:count]
+			}
+			return txt
+		case "STDOUT":
+			p.errstr = "can't read from stdout"
+			return ""
+		case "STDERR":
+			p.errstr = "can't read from stderr"
+			return ""
+		}
 	}
-	p.seekTbl[fd] += uint64(len(b))
+
+	if len(kcs) == 1 {
+		kc := kcs[0]
+
+		b, err := fRead(kc, p.seekTbl[fd], count)
+		if err != nil {
+			p.errstr = err.Error()
+			return ""
+		}
+		p.seekTbl[fd] += uint64(len(b))
+		return string(b)
+	}
+
+	// Union directory
+	b := make([]byte, 0)
+	icnt := int32(count)
+
+	for _, kc := range kcs {
+		nb, err := fRead(kc, p.seekTbl[fd], ^uint32(0))
+		if err != nil {
+			p.errstr = err.Error()
+			return ""
+		}
+
+		// This is hacky but its fine
+		// All or nothing union reads
+		icnt -= int32(len(nb))
+		if icnt < 0 {
+			p.errstr = "insufficient room in buffer (HACKY, SEE CODE)"
+			return ""
+		}
+		b = append(b, nb...)
+	}
+
 	return string(b)
 }
 
 func (p *Proc) Write(fd int, data string) int {
-	kc, ok := p.fdTbl[fd]
+	kcs, ok := p.fdTbl[fd]
 	if !ok {
 		p.errstr = "no such fd"
 		return -1
 	}
 
-	cnt, err := fWrite(kc, p.seekTbl[fd], data)
+	if p.isSpecialFd(fd) {
+		switch kcs[0].name {
+		case "STDIN":
+			p.errstr = "can't write to stdin"
+			return 0
+		case "STDOUT":
+			fmt.Printf("%s", data)
+			return len(data)
+		case "STDERR":
+			fmt.Fprintf(os.Stderr, "%s", data)
+			return len(data)
+		}
+	}
+
+	cnt, err := fWrite(kcs[0], p.seekTbl[fd], data)
 	if err != nil {
 		p.errstr = err.Error()
 		return -1

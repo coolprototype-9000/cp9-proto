@@ -103,7 +103,7 @@ func (p *Proc) Fd2Path(fd int) string {
 		return ""
 	}
 	if nm, ok := p.fdTbl[fd]; ok {
-		return nm.name
+		return nm[0].name
 	}
 	p.errstr = "no such file or directory"
 	return ""
@@ -148,7 +148,7 @@ func (p *Proc) Unmount(name string, old string) int {
 		return -1
 	} else {
 		for _, kc := range p.fdTbl {
-			if strings.Contains(kc.name, ss) {
+			if strings.Contains(kc[0].name, ss) {
 				p.errstr = "device is busy"
 				return -1
 			}
