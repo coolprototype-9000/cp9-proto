@@ -135,7 +135,7 @@ func MarshalStat(s Stat) []byte {
 	return buf
 }
 
-func unmarshalStat(b []byte) (Stat, []byte) {
+func UnmarshalStat(b []byte) (Stat, []byte) {
 	_, b = unmarshalUint16(b)
 	sz, b := unmarshalUint16(b)
 	dt, b := unmarshalUint16(b)
@@ -310,10 +310,10 @@ func unmarshalFCall(b []byte) FCall {
 	case TClunk, TRemove, TStat:
 		f.F, _ = unmarshalFid(b)
 	case RStat:
-		f.St, _ = unmarshalStat(b)
+		f.St, _ = UnmarshalStat(b)
 	case TWStat:
 		f.F, b = unmarshalFid(b)
-		f.St, _ = unmarshalStat(b)
+		f.St, _ = UnmarshalStat(b)
 	}
 
 	return f

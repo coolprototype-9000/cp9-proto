@@ -172,9 +172,27 @@ func (p *Proc) Open(file string, mode byte) int {
 		kcl := p.mnt.forwardEval(kc)
 		if len(kcl) > 0 {
 			kcs = kcl
+			for i, kc := range kcs {
+				kcs[i], err = fWalk(kc, mkFid(), []string{})
+				if err != nil {
+					p.errstr = "failed to dup fid for preopen"
+					return -1
+				}
+			}
+		}
+	} else {
+		kcl := p.mnt.forwardEval(kc)
+		if len(kcl) > 0 {
+			kcs = []*kchan{kcl[0]}
+			kcs[0], err = fWalk(kc, mkFid(), []string{})
+			if err != nil {
+				p.errstr = "failed to dup fid for preopen"
+				return -1
+			}
 		}
 	}
 
+	ncs := make([]*kchan, 0)
 	for _, kc := range kcs {
 		nc, err := fWalk(kc, mkFid(), []string{})
 		if err != nil {
@@ -191,10 +209,13 @@ func (p *Proc) Open(file string, mode byte) int {
 			fClunk(kc)
 		}
 
+		ncs = append(ncs, nc)
+
 	}
 	nf := p.mkFd()
-	p.fdTbl[nf] = kcs
+	p.fdTbl[nf] = ncs
 	p.seekTbl[nf] = 0
+	fmt.Printf("length ncs: %d\n", len(ncs))
 	return nf
 }
 
@@ -237,7 +258,7 @@ func (p *Proc) Read(fd int, count uint32) string {
 
 	// Union directory
 	b := make([]byte, 0)
-	icnt := int32(count)
+	icnt := int64(count)
 
 	for _, kc := range kcs {
 		nb, err := fRead(kc, p.seekTbl[fd], ^uint32(0))
@@ -248,7 +269,7 @@ func (p *Proc) Read(fd int, count uint32) string {
 
 		// This is hacky but its fine
 		// All or nothing union reads
-		icnt -= int32(len(nb))
+		icnt -= int64(len(nb))
 		if icnt < 0 {
 			p.errstr = "insufficient room in buffer (HACKY, SEE CODE)"
 			return ""
@@ -256,6 +277,7 @@ func (p *Proc) Read(fd int, count uint32) string {
 		b = append(b, nb...)
 	}
 
+	p.seekTbl[fd] += uint64(len(b))
 	return string(b)
 }
 

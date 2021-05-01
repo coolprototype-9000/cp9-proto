@@ -36,9 +36,9 @@ func MkProc(cwd *kchan, owner string) *Proc {
 	}
 
 	nfdtbl := make(map[int][]*kchan)
-	nfdtbl[0] = []*kchan{&kchan{name: "STDIN"}}
-	nfdtbl[1] = []*kchan{&kchan{name: "STDOUT"}}
-	nfdtbl[2] = []*kchan{&kchan{name: "STDERR"}}
+	nfdtbl[0] = []*kchan{{name: "STDIN"}}
+	nfdtbl[1] = []*kchan{{name: "STDOUT"}}
+	nfdtbl[2] = []*kchan{{name: "STDERR"}}
 
 	return &Proc{
 		mnt:     mkFreshMountTable(),

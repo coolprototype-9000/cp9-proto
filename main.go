@@ -31,7 +31,7 @@ func main() {
 		log.Fatalf("failure to bind ramfs: %s", myproc.Errstr())
 	}
 
-	names := []string{"disks", "home", "home/rob", "home/ken", "disks/disk1", "disks/disk2", "/disks/disk1/bin"}
+	names := []string{"disks", "home", "home/rob", "/home/rob/yote", "home/ken", "disks/disk1", "disks/disk2", "/disks/disk1/bin", "/disks/disk1/bin2"}
 	for _, name := range names {
 		fd := myproc.Create(name, nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
 		if fd < 0 {
@@ -44,10 +44,10 @@ func main() {
 	}
 
 	fmt.Printf("Files created\n")
-	myproc.Bind("/disks/disk1", "/home/rob", client.Replace)
-	myproc.Bind("/disks/disk2", "/home/ken", client.Replace)
+	myproc.Bind("/disks/disk1", "/home/rob", client.Before)
+	myproc.Bind("/disks/disk2", "/home/ken", client.Before)
 
-	if myproc.Chdir("home/rob/bin") < 0 {
+	if myproc.Chdir("/home/rob/bin2") < 0 {
 		log.Fatalf("chdir failed")
 	}
 	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
@@ -55,6 +55,37 @@ func main() {
 	if myproc.Chdir("../../ken") < 0 {
 		log.Fatalf("chdir failed")
 	}
+	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
+
+	myproc.Chdir("../rob")
+	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
+
+	// Try to read union directory
+	fd := myproc.Open(".", nine.OREAD)
+	b := []byte(myproc.Read(fd, ^uint32(0)))
+
+	stats := make([]nine.Stat, 0)
+	for len(b) > 0 {
+		stat, nb := nine.UnmarshalStat(b)
+		b = nb
+		stats = append(stats, stat)
+	}
+
+	fmt.Printf("%v\n", stats)
+
+	myproc.Close(fd)
+
+	// Try to delete /home/rob/bin2 and /home/rob/yote
+	res := myproc.Remove("/home/rob/bin2")
+	if res < 0 {
+		log.Fatalf("error removing bound thing: %s\n", myproc.Errstr())
+	}
+	res = myproc.Remove("/home/rob/yote")
+	if res < 0 {
+		log.Fatalf("error removing unbound thing: %s\n", myproc.Errstr())
+	}
+
+	myproc.Chdir("../ken")
 	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
 
 	// Try to unmount, should fail
@@ -80,7 +111,7 @@ func main() {
 	}
 
 	// Write some files!
-	fd := myproc.Create("asdf", nine.OREAD, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
+	fd = myproc.Create("asdf", nine.OREAD, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
 	myproc.Close(fd)
 	fd = myproc.Open("asdf", nine.ORDWR)
 	if fd < 0 {
@@ -90,9 +121,9 @@ func main() {
 	myproc.Write(fd, " world!")
 	myproc.Close(fd)
 	fd = myproc.Open("asdf", nine.OREAD)
-	res := myproc.Read(fd, 100)
-	if res == "" {
+	sres := myproc.Read(fd, 100)
+	if sres == "" {
 		log.Fatalf("Early failure: %s\n", myproc.Errstr())
 	}
-	fmt.Printf("RESULT: %s\n", res)
+	fmt.Printf("RESULT: %s\n", sres)
 }
