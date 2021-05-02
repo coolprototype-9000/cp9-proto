@@ -50,6 +50,13 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 			log.Fatalf("Local file server refused to attach")
 		}
 
+		if tp == nine.DevRamFs && old == "/" && mode == Replace {
+			if kchanCmp(p.cwd, &rootChannel) {
+				newerc, _ := fWalk(newc, mkFid(), []string{})
+				p.cwd = newerc
+			}
+		}
+
 	} else {
 		newc, err = p.evaluate(name, false)
 		if err != nil {

@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"path"
 	"strings"
 )
@@ -27,7 +26,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 	cl := []*kchan{&rootChannel}
 	var canClunk bool
 
-	if pth == "." {
+	if els[0] == "." && len(els) == 1 {
 		if estop {
 			return p.cwd, nil
 		} else {
@@ -37,7 +36,7 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 			}
 			return p.cwd, nil
 		}
-	} else if pth == "/" {
+	} else if pth == "/" && len(els) == 1 {
 		if estop {
 			return &rootChannel, nil
 		} else {
@@ -90,22 +89,17 @@ func (p *Proc) evaluate(pth string, estop bool) (*kchan, error) {
 		if el == ".." {
 			// result is one possible result, but we need
 			// to backwards-eval the mount table
-			fmt.Printf("Dot dot res is %v\n", *initwalkres)
 			trimmedinitialnm := path.Dir(cc.name)
 			nmntres, err := p.mnt.reverseEval(initwalkres, trimmedinitialnm)
 			if err == nil && trimmedinitialnm != "/" {
 				cl = []*kchan{nmntres}
 				canClunk = false
-				fmt.Printf("No dot dot error\n")
 			} else {
 				cl = []*kchan{initwalkres}
 				canClunk = true
-				fmt.Printf("Dot dot error\n")
 			}
-			fmt.Printf("Solved ..: proper parent is %v\n", *cl[0])
 
 		} else {
-			fmt.Printf("Evaluating: %v\n", *initwalkres)
 			if i == len(els)-1 && estop {
 				cl = []*kchan{initwalkres}
 				canClunk = true

@@ -1,22 +1,38 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/coolprototype-9000/cp9-proto/client"
 	"github.com/coolprototype-9000/cp9-proto/consfs"
 	"github.com/coolprototype-9000/cp9-proto/netfs"
 	"github.com/coolprototype-9000/cp9-proto/nine"
 	"github.com/coolprototype-9000/cp9-proto/ramfs"
+	"github.com/coolprototype-9000/cp9-proto/user"
 )
 
 func main() {
 
+	// Initialize the kernel
 	c := &consfs.ConsFs{}
 	r := &ramfs.RamFs{}
 	n := &netfs.NetFs{}
 
+	// Get bootargs
+	fmt.Printf("CP9 loader -- 2021\n")
+	fmt.Printf("Running mountless: all filesystems local\n")
+uprompt:
+	fmt.Printf("Log in as? ")
+	rdr := bufio.NewReader(os.Stdin)
+	uname, _ := rdr.ReadString('\n')
+	uname = uname[:len(uname)-1]
+	if uname == "" {
+		goto uprompt
+	}
+
+	// Initialize all file servers
 	cConf := nine.MkConfig(c, 5640)
 	rConf := nine.MkConfig(r, 5641)
 	nConf := nine.MkConfig(n, 5642)
@@ -24,106 +40,7 @@ func main() {
 	go nine.ServeForever(&rConf)
 	go nine.ServeForever(&nConf)
 
-	// Let's try things!
-	myproc := client.MkProc(nil, "jaytlang")
-	st := myproc.Bind("#r", "/", client.Replace)
-	if st < 0 {
-		log.Fatalf("failure to bind ramfs: %s", myproc.Errstr())
-	}
-
-	names := []string{"disks", "home", "home/rob", "/home/rob/yote", "home/ken", "disks/disk1", "disks/disk2", "/disks/disk1/bin", "/disks/disk1/bin2"}
-	for _, name := range names {
-		fd := myproc.Create(name, nine.OREAD, nine.PUR|nine.PUW|nine.PUX|nine.PGR|nine.PGX|(nine.FDir<<nine.FStatOffset))
-		if fd < 0 {
-			log.Fatalf("failed to create file: %d\n", fd)
-		}
-		fd = myproc.Close(fd)
-		if fd < 0 {
-			log.Fatalf("failed to close file: %s\n", myproc.Errstr())
-		}
-	}
-
-	fmt.Printf("Files created\n")
-	myproc.Bind("/disks/disk1", "/home/rob", client.Before)
-	myproc.Bind("/disks/disk2", "/home/ken", client.Before)
-
-	if myproc.Chdir("/home/rob/bin2") < 0 {
-		log.Fatalf("chdir failed")
-	}
-	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
-
-	if myproc.Chdir("../../ken") < 0 {
-		log.Fatalf("chdir failed")
-	}
-	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
-
-	myproc.Chdir("../rob")
-	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
-
-	// Try to read union directory
-	fd := myproc.Open(".", nine.OREAD)
-	b := []byte(myproc.Read(fd, ^uint32(0)))
-
-	stats := make([]nine.Stat, 0)
-	for len(b) > 0 {
-		stat, nb := nine.UnmarshalStat(b)
-		b = nb
-		stats = append(stats, stat)
-	}
-
-	fmt.Printf("%v\n", stats)
-
-	myproc.Close(fd)
-
-	// Try to delete /home/rob/bin2 and /home/rob/yote
-	res := myproc.Remove("/home/rob/bin2")
-	if res < 0 {
-		log.Fatalf("error removing bound thing: %s\n", myproc.Errstr())
-	}
-	res = myproc.Remove("/home/rob/yote")
-	if res < 0 {
-		log.Fatalf("error removing unbound thing: %s\n", myproc.Errstr())
-	}
-
-	myproc.Chdir("../ken")
-	fmt.Printf("Currently here: %v\n---------------------\n", *myproc.Stat("."))
-
-	// Try to unmount, should fail
-	if myproc.Unmount("/disks/disk1", "/home/rob") < 0 {
-		fmt.Printf("Failed as we should NOT have: %s\n", myproc.Errstr())
-	}
-	if myproc.Unmount("/disks/disk2", "/home/ken") < 0 {
-		fmt.Printf("Failed as we should have: %s\n", myproc.Errstr())
-	}
-
-	if myproc.Chdir("../rob/bin") < 0 {
-		fmt.Printf("Failed as we should have: %s\n", myproc.Errstr())
-	}
-
-	if myproc.Remove("/disks/disk2") < 0 {
-		fmt.Printf("Remove failed as it should have: %s\n", myproc.Errstr())
-	}
-	if myproc.Remove("/home/") < 0 {
-		fmt.Printf("Remove failed as it should have: %s\n", myproc.Errstr())
-	}
-	if myproc.Remove("/disks/disk1") < 0 {
-		fmt.Printf("Remove failed as it should NOT have: %s\n", myproc.Errstr())
-	}
-
-	// Write some files!
-	fd = myproc.Create("asdf", nine.OREAD, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
-	myproc.Close(fd)
-	fd = myproc.Open("asdf", nine.ORDWR)
-	if fd < 0 {
-		log.Fatalf("Failure: %s\n", myproc.Errstr())
-	}
-	myproc.Write(fd, "hello")
-	myproc.Write(fd, " world!")
-	myproc.Close(fd)
-	fd = myproc.Open("asdf", nine.OREAD)
-	sres := myproc.Read(fd, 100)
-	if sres == "" {
-		log.Fatalf("Early failure: %s\n", myproc.Errstr())
-	}
-	fmt.Printf("RESULT: %s\n", sres)
+	// Create init and enter userland
+	init := client.MkProc(nil, uname)
+	user.Init(init)
 }

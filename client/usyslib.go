@@ -80,13 +80,20 @@ func (p *Proc) Fstat(fd int) *nine.Stat {
 
 func (p *Proc) Chdir(pathname string) int {
 	ncwd, err := p.evaluate(pathname, true)
+
 	if err != nil {
 		p.errstr = "no such file or directory"
 		return -1
-	}
-	if !kchanCmp(p.cwd, &rootChannel) {
+	} else if kchanCmp(ncwd, &rootChannel) {
+		ncwd, _ = p.evaluate(pathname, false)
+		fmt.Printf("HERE: %v\n", ncwd.c)
+	} else if kchanCmp(ncwd, p.cwd) {
+		return 0
+	} else {
 		fClunk(p.cwd)
 	}
+
+	// kchan leak, todo
 	p.cwd = ncwd
 	return 0
 }
@@ -100,6 +107,25 @@ func (p *Proc) Close(fd int) int {
 
 	if p.isSpecialFd(fd) {
 		goto donenet
+	}
+
+	// Contingency check: search for other fds like
+	// this in the fdtable so that dup works
+	// This is a hack in the absence of a dupfs
+	// which would be EXTREMELY handy (and serve as
+	// the architecture for a srv registry)
+	for k, v := range p.fdTbl {
+		if k != fd {
+			match := true
+			for i := range v {
+				if v[i] != kc[i] {
+					match = false
+				}
+			}
+			if match {
+				goto donenet
+			}
+		}
 	}
 
 	// We have an invariant that created/opened
@@ -154,14 +180,21 @@ func (p *Proc) Open(file string, mode byte) int {
 	// in case this is a union directory or union file
 	kcs := make([]*kchan, 1)
 	kc, err := p.evaluate(file, true)
+	kcs[0] = kc
 	if err != nil {
 		p.errstr = "no such file or directory"
 		return -1
+	} else if kchanCmp(kc, &rootChannel) {
+		fmt.Printf("HERE: %s\n", file)
+		kc, _ = p.evaluate(file, false)
+		kcs[0] = kc
 	}
-	kcs[0] = kc
+
+	// Contingency check: do go forward if we are
+	// the root directory. Sort of hacky.
 
 	// Stat
-	st, err := fStat(kc)
+	st, err := fStat(kcs[0])
 	if err != nil {
 		p.errstr = "failed to stat file"
 		return -1
@@ -183,8 +216,9 @@ func (p *Proc) Open(file string, mode byte) int {
 	} else {
 		kcl := p.mnt.forwardEval(kc)
 		if len(kcl) > 0 {
+			fmt.Printf("KCL > 0: %v\n", kcl)
 			kcs = []*kchan{kcl[0]}
-			kcs[0], err = fWalk(kc, mkFid(), []string{})
+			kcs[0], err = fWalk(kcs[0], mkFid(), []string{})
 			if err != nil {
 				p.errstr = "failed to dup fid for preopen"
 				return -1
@@ -215,7 +249,6 @@ func (p *Proc) Open(file string, mode byte) int {
 	nf := p.mkFd()
 	p.fdTbl[nf] = ncs
 	p.seekTbl[nf] = 0
-	fmt.Printf("length ncs: %d\n", len(ncs))
 	return nf
 }
 
@@ -309,4 +342,31 @@ func (p *Proc) Write(fd int, data string) int {
 	}
 	p.seekTbl[fd] += uint64(cnt)
 	return int(cnt)
+}
+
+func (p *Proc) Dup(oldfd int, newfd int) int {
+	if _, ok := p.fdTbl[oldfd]; !ok {
+		p.errstr = "no such source fd"
+		return -1
+	}
+
+	if newfd < 0 {
+		newfd = p.mkFd()
+	} else if _, ok := p.fdTbl[newfd]; ok {
+		p.Close(newfd)
+	}
+
+	// Reuse
+	p.fdTbl[newfd] = p.fdTbl[oldfd]
+	p.seekTbl[newfd] = p.seekTbl[oldfd]
+	return newfd
+}
+
+func (p *Proc) Seek(fd int, where uint64) int {
+	if _, ok := p.fdTbl[fd]; !ok {
+		p.errstr = "no such fd"
+		return -1
+	}
+	p.seekTbl[fd] = where
+	return 0
 }

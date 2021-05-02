@@ -35,8 +35,6 @@ func (c *ConsFs) isOpenByAnyone(id uint64) bool {
 		for fd, thisID := range ft {
 			if fd.open && thisID == id {
 				return true
-			} else if thisID == id {
-				return false
 			}
 		}
 	}

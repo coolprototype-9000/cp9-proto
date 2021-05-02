@@ -2,6 +2,7 @@ package ramfs
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/coolprototype-9000/cp9-proto/nine"
 )
@@ -459,6 +460,15 @@ func (r *RamFs) Remove(conId uint64, f nine.Fid) error {
 	} else {
 		delete(r.fileTable, id)
 	}
+
+	for i, ent := range r.dirTable[pID] {
+		if ent == id {
+			r.dirTable[pID] = append(r.dirTable[pID][:i], r.dirTable[pID][i+1:]...)
+			break
+		}
+	}
+
+	fmt.Printf("HERERERERERERER")
 
 	r.Clunk(conId, f)
 	return nil

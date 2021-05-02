@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 )
 
 type mountPair struct {
@@ -29,7 +28,6 @@ func (m *mountTable) bind(from *kchan, to *kchan, first bool) {
 	} else {
 		m.tbl = append([]mountPair{np}, m.tbl...)
 	}
-	fmt.Printf("!: %v -> %v\n", *from, *to)
 }
 
 // Unbind, returning an error if no such mapping exists
@@ -38,7 +36,6 @@ func (m *mountTable) unbind(from *kchan, to *kchan) error {
 		if kchanCmp(mp.from, from) {
 			if kchanCmp(mp.to, to) {
 				// from->to exists
-				fmt.Printf("*: %v -> %v\n", *mp.from, *mp.to)
 				m.tbl = append(m.tbl[:i], m.tbl[i+1:]...)
 				return nil
 			}
@@ -68,7 +65,6 @@ func (m *mountTable) reverseEval(to *kchan, from string) (*kchan, error) {
 	for _, mp := range m.tbl {
 		if kchanCmp(mp.to, to) {
 			if mp.from.name == from {
-				fmt.Printf("%v -> %v\n", *mp.from, *mp.to)
 				var nc *kchan = new(kchan)
 				*nc = *mp.from
 				return nc, nil

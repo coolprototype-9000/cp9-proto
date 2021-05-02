@@ -3,6 +3,7 @@ package consfs
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -261,7 +262,7 @@ func (c *ConsFs) Read(conId uint64, f nine.Fid, offset uint64, count uint32) ([]
 		ns := nine.Stat{
 			DevType: nine.DevCons,
 			DevNo:   c.devNumber,
-			Q:       nine.Qid{Flags: nine.FAppend},
+			Q:       nine.Qid{Flags: nine.FAppend, Id: rand.Uint64()},
 			Mode:    nine.PUR | nine.PUW | nine.PGR | nine.PGW | nine.POR | nine.POW,
 			Atime:   uint32(time.Now().Unix()),
 			Mtime:   uint32(time.Now().Unix()),
