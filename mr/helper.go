@@ -3,7 +3,6 @@ package mr
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -42,12 +41,23 @@ func MkIntermediateName(mapId int, reduceId int) string {
 func IntermediatesFor(reduceId int) []string {
 	// Check the working directory for all files which match
 	// the suffix *[reduceId].tmp
-	glob := fmt.Sprintf("*%d.tmp", reduceId)
-	matches, err := filepath.Glob(glob)
-	if err != nil {
-		log.Fatalf("failed to glob for %s", glob)
-	}
 
+	matches := []string{}
+	cmp := fmt.Sprintf("%d.tmp", reduceId)
+
+	cwd := p.Open(".", nine.OREAD)
+	b := []byte(p.Read(cwd, ^uint32(0)))
+	p.Close(cwd)
+
+	for len(b) > 0 {
+		stat, nb := nine.UnmarshalStat(b)
+		b = nb
+		name := stat.Name
+
+		if strings.Contains(name, cmp) {
+			matches = append(matches, name)
+		}
+	}
 	return matches
 }
 
