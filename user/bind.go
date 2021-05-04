@@ -4,7 +4,7 @@ import "github.com/coolprototype-9000/cp9-proto/client"
 
 func bind(args ...string) {
 	if len(args) != 4 {
-		printf("usage: bind <name> <old> <a|b|r>")
+		Printf("usage: bind <name> <old> <a|b|r>")
 		return
 	}
 
@@ -17,12 +17,12 @@ func bind(args ...string) {
 	case "r":
 		bt = client.Replace
 	default:
-		printf("usage: bind <name> <old> <a|b|r>")
+		Printf("usage: bind <name> <old> <a|b|r>")
 		return
 	}
 
 	st := p.Bind(args[1], args[2], bt)
 	if st < 0 {
-		printf("failed to bind: %s\n", p.Errstr())
+		Printf("failed to bind: %s\n", p.Errstr())
 	}
 }

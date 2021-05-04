@@ -176,3 +176,15 @@ func fStat(onichan *kchan) (nine.Stat, error) {
 	err := checkMsg(res, nine.RStat)
 	return res.St, err
 }
+
+func fWstat(onichan *kchan, s *nine.Stat) error {
+	sf := nine.FCall{
+		MsgType: nine.TWStat,
+		Tag:     mkTag(),
+		F:       onichan.fid,
+		St:      *s,
+	}
+
+	res := writeAndRead(onichan.c, &sf)
+	return checkMsg(res, nine.RWStat)
+}

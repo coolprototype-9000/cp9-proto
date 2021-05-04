@@ -18,19 +18,19 @@ func ls(argv ...string) {
 func do(f string) int {
 	fd := p.Open(f, nine.OREAD)
 	if fd < 0 {
-		printf("ls: open: %s\n", p.Errstr())
+		Printf("ls: open: %s\n", p.Errstr())
 		return -1
 	}
 
 	st := p.Fstat(fd)
 	if st == nil {
-		printf("ls: stat: %s\n", p.Errstr())
+		Printf("ls: stat: %s\n", p.Errstr())
 		p.Close(fd)
 		return -1
 	}
 
 	if st.Q.Flags&nine.FDir == 0 {
-		printf("%s\t%s\t%d\t%d\n", st.Name, "fil", st.Size, st.Mode)
+		Printf("%s\t%s\t%d\t%d\n", st.Name, "fil", st.Size, st.Mode)
 		return 0
 	} else {
 		stats := dirread(fd)
@@ -39,7 +39,7 @@ func do(f string) int {
 			if st.Q.Flags&nine.FDir > 0 {
 				disp = "dir"
 			}
-			printf("%s\t%s\t%d\t%d\n", st.Name, disp, st.Size, st.Mode)
+			Printf("%s\t%s\t%d\t%d\n", st.Name, disp, st.Size, st.Mode)
 		}
 	}
 	p.Close(fd)

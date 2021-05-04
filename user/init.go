@@ -23,7 +23,7 @@ func Init(tp *client.Proc) {
 	p.Bind("#n", "/net", client.Replace)
 	p.Close(fd)
 
-	printf("3 filesystems created\nStarting sh..\n")
+	Printf("3 filesystems created\nStarting sh..\n")
 	sh()
 
 }

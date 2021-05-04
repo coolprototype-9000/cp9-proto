@@ -4,7 +4,7 @@ import "github.com/coolprototype-9000/cp9-proto/nine"
 
 func touch(args ...string) {
 	if len(args) == 1 {
-		printf("not enough arguments")
+		Printf("not enough arguments")
 		return
 	}
 
@@ -14,7 +14,7 @@ func touch(args ...string) {
 		if fd < 0 {
 			fd := p.Create(args[i], nine.OREAD, uint32(baseFlags))
 			if fd < 0 {
-				printf("failed to create file: %s\n", p.Errstr())
+				Printf("failed to create file: %s\n", p.Errstr())
 				break
 			}
 		}

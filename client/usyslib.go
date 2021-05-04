@@ -42,6 +42,21 @@ func (p *Proc) Create(name string, mode byte, perm uint32) int {
 	return nf
 }
 
+func (p *Proc) Rename(name string, newfname string) int {
+	kc, err := p.evaluate(name, false)
+	if err != nil {
+		p.errstr = "failed to evaluate name, no such file/dir?"
+		return -1
+	}
+	if fWstat(kc, &nine.Stat{
+		Name: newfname,
+	}) != nil {
+		p.errstr = err.Error()
+		return -1
+	}
+	return 0
+}
+
 func (p *Proc) Stat(name string) *nine.Stat {
 	kc, err := p.evaluate(name, true)
 	if err != nil {

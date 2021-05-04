@@ -2,11 +2,41 @@ package user
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/coolprototype-9000/cp9-proto/nine"
 )
+
+func setupMapReduce() {
+	matches, err := filepath.Glob("mr/sherlock-holmes-*")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, m := range matches {
+		content, err := ioutil.ReadFile(m)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		sc := string(content)
+		fd := p.Create(path.Base(m), nine.ORDWR, nine.PUR|nine.PUW|nine.PGR|nine.PGW|nine.POR|nine.POW)
+		if fd < 0 {
+			log.Fatal(p.Errstr())
+		}
+
+		ei := p.Write(fd, sc)
+		if ei < 0 {
+			log.Fatal(p.Errstr())
+		}
+		p.Close(fd)
+	}
+}
 
 func setupConsFs() {
 	var cs string
@@ -15,12 +45,12 @@ func setupConsFs() {
 		goto err
 	}
 
-	printf("Waiting for consfs to connect...")
+	Printf("Waiting for consfs to connect...")
 	cs = p.Read(fd, maxQt)
 	if len(cs) == 0 {
 		goto err
 	}
-	printf("Connected.\n")
+	Printf("Connected.\n")
 
 	p.Close(fd)
 	fd = p.Open(fmt.Sprintf("/cons/%s", cs), nine.ORDWR)
@@ -50,12 +80,13 @@ const (
 )
 
 func sh() {
+	setupMapReduce()
 	setupConsFs()
 
 	backupIn = p.Dup(0, -1)
 	backupOut = p.Dup(1, -1)
 	if backupIn < 0 || backupOut < 0 {
-		printf("couldn't dup stdout/stdin for future use\n")
+		Printf("couldn't dup stdout/stdin for future use\n")
 		os.Exit(1)
 	}
 
@@ -63,7 +94,7 @@ func sh() {
 		cmd := p.Read(0, maxQt)
 		args := strings.Split(cmd, " ")
 		if len(args) == 0 {
-			printf("no command received\n")
+			Printf("no command received\n")
 			continue
 		}
 
@@ -73,10 +104,10 @@ func sh() {
 		for _, arg := range args {
 			if arg == ">" || arg == "<" || arg == ">>" {
 				if len(lcmd) == 0 {
-					printf("syntax error\n")
+					Printf("syntax error\n")
 					continue
 				} else if t != noBinary {
-					printf("only binary commands supported\n")
+					Printf("only binary commands supported\n")
 					continue
 				}
 				switch arg {
@@ -90,7 +121,7 @@ func sh() {
 			} else if t == noBinary {
 				lcmd = append(lcmd, arg)
 			} else if rcmd != "" {
-				printf("right side of rcmd should be a single file!\n")
+				Printf("right side of rcmd should be a single file!\n")
 				continue
 			} else {
 				rcmd = arg
@@ -105,7 +136,7 @@ func sh() {
 			if fd < 0 {
 				fd = p.Create(rcmd, nine.OWRITE, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
 				if fd < 0 {
-					printf("Failed to create %s: %s\n", rcmd, p.Errstr())
+					Printf("Failed to create %s: %s\n", rcmd, p.Errstr())
 					continue
 				}
 			}
@@ -119,7 +150,7 @@ func sh() {
 			if fd < 0 {
 				fd = p.Create(rcmd, nine.OWRITE, nine.PUR|nine.PUW|nine.PGR|nine.PGW)
 				if fd < 0 {
-					printf("Failed to create %s: %s\n", rcmd, p.Errstr())
+					Printf("Failed to create %s: %s\n", rcmd, p.Errstr())
 					continue
 				}
 			}
@@ -131,7 +162,7 @@ func sh() {
 		case inRedir:
 			fd := p.Open(rcmd, nine.OREAD)
 			if fd < 0 {
-				printf("Failed to open %s: %s\n", rcmd, p.Errstr())
+				Printf("Failed to open %s: %s\n", rcmd, p.Errstr())
 				continue
 			}
 
@@ -165,7 +196,11 @@ func execCmd(args []string) {
 		mkdir(args...)
 	case "touch":
 		touch(args...)
+	case "mrc":
+		mrc(args...)
+	case "mrw":
+		mrw(args...)
 	default:
-		printf("unknown command")
+		Printf("unknown command")
 	}
 }

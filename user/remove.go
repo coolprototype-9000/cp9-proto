@@ -5,14 +5,14 @@ package user
 // p.Errstr() -> returns string describing most recent error
 func rm(args ...string) {
 	if len(args) == 1 {
-		printf("too few arguments")
+		Printf("too few arguments")
 		return
 	}
 	for i := 1; i < len(args); i++ {
 		if p.Remove(args[i]) == 0 {
-			printf("Yeeted file succesfully")
+			Printf("Yeeted file succesfully")
 		} else {
-			printf("rm: error: %s\n", p.Errstr())
+			Printf("rm: error: %s\n", p.Errstr())
 			break
 		}
 	}

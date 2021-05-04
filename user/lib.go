@@ -8,7 +8,7 @@ import (
 
 const maxQt = ^uint32(0)
 
-func printf(format string, param ...interface{}) {
+func Printf(format string, param ...interface{}) {
 	str := fmt.Sprintf(format, param...)
 	p.Write(1, str)
 }
