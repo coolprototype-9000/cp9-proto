@@ -14,7 +14,7 @@ func mrc(args ...string) {
 	base := "sherlock-holmes-a"
 	names := []string{}
 	for _, c := range "abcdefghijklmn" {
-		names = append(names, fmt.Sprintf("%s%v", base, c))
+		names = append(names, fmt.Sprintf("%s%c", base, c))
 	}
 
 	m := mr.MakeCoordinator(names, 10, p)
