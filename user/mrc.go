@@ -1,20 +1,27 @@
 package user
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/coolprototype-9000/cp9-proto/mr"
 )
 
 func mrc(args ...string) {
-	if len(args) < 2 {
-		Printf("Usage: mrc inputfiles...\n")
+	if len(args) != 1 {
+		Printf("Usage: mrc\nInputs are hard coded")
 		return
 	}
 
 	Printf("Working")
 
-	m := mr.MakeCoordinator(args[1:], 10, p)
+	base := "sherlock-holmes-a"
+	names := []string{}
+	for _, c := range "abcdefghijklmn" {
+		names = append(names, fmt.Sprintf("%s%v", base, c))
+	}
+
+	m := mr.MakeCoordinator(names, 10, p)
 	for !m.Done() {
 		Printf(".")
 		time.Sleep(time.Second)
