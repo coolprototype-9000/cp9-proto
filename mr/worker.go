@@ -38,6 +38,7 @@ func ihash(key string) int {
 func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string, tp *client.Proc) {
 
+	rand.Seed(time.Now().Unix())
 	setupCon()
 	p = tp
 
@@ -144,7 +145,6 @@ func Worker(mapf func(string, string) []KeyValue,
 			}
 
 			// make a temporary file
-			rand.Seed(time.Now().Unix())
 			tfName := fmt.Sprintf("mr-tmp-out%d", rand.Uint64())
 			tf := p.Create(tfName, nine.ORDWR, nine.PUR|nine.PUW|nine.PGR|nine.PGW|nine.POR|nine.POX)
 			if tf < 0 {

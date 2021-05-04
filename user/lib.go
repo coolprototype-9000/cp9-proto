@@ -13,7 +13,7 @@ func Printf(format string, param ...interface{}) {
 	p.Write(1, str)
 }
 
-func Dirread(fd int) []*nine.Stat {
+func dirread(fd int) []*nine.Stat {
 	b := []byte(p.Read(fd, maxQt))
 
 	stats := make([]*nine.Stat, 0)
