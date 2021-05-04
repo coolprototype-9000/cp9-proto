@@ -62,6 +62,7 @@ func Worker(mapf func(string, string) []KeyValue,
 
 			// Call map
 			kva := mapf(r.Filename, content)
+			fmt.Println("map finished")
 
 			// Done. Create r.ReduceTasks files
 			flist := make([]int, r.ReduceTasks)
@@ -73,6 +74,9 @@ func Worker(mapf func(string, string) []KeyValue,
 				}
 				flist[i] = f
 			}
+
+			fmt.Println("created intermediate files")
+
 			// Iterate through all keys in kva, using the hash
 			// to pick files to write to
 			fcnt := make(map[int]string)
@@ -80,9 +84,13 @@ func Worker(mapf func(string, string) []KeyValue,
 				target := ihash(kv.Key) % r.ReduceTasks
 				fcnt[flist[target]] += fmt.Sprintf("%s %s\n", kv.Key, kv.Value)
 			}
+
+			fmt.Println("populated files")
+
 			for fd, s := range fcnt {
 				p.Write(fd, s)
 			}
+			fmt.Println("flushed files")
 
 			// Close every file
 			for i := 0; i < r.ReduceTasks; i++ {
@@ -100,8 +108,10 @@ func Worker(mapf func(string, string) []KeyValue,
 			if !call("Coordinator.Tell", &ta, &tr) {
 				log.Fatal("failed to Tell")
 			}
+			fmt.Println("done")
+
 		} else {
-			fmt.Println("Requested to reduce")
+			fmt.Println("got reduce request")
 
 			// Reduce: get the list of files for our id
 			flist := IntermediatesFor(r.TaskId)
@@ -130,6 +140,7 @@ func Worker(mapf func(string, string) []KeyValue,
 					}
 				}
 				p.Close(f)
+				fmt.Println("aggregated a file into master map")
 			}
 
 			// make a temporary file
@@ -139,11 +150,18 @@ func Worker(mapf func(string, string) []KeyValue,
 				log.Fatal("failed to open tempfile for reduce")
 			}
 
+			fmt.Println("created tempfile")
+
 			// ship off each key/[]value to reduce
+			var s string
 			for k, v := range masterMap {
 				output := reducef(k, v)
-				p.Write(tf, fmt.Sprintf("%v %v\n", k, output))
+				s += fmt.Sprintf("%v %v\n", k, output)
 			}
+			fmt.Println("reduce finished")
+
+			p.Write(tf, s)
+			fmt.Println("reduce flushed")
 
 			// close the tempfile and rename it atomically
 			p.Close(tf)
@@ -164,6 +182,8 @@ func Worker(mapf func(string, string) []KeyValue,
 			if !call("Coordinator.Tell", &ta, &tr) {
 				log.Fatal("failed to Tell")
 			}
+
+			fmt.Println("done")
 		}
 	}
 

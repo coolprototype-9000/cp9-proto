@@ -186,9 +186,7 @@ func (c *Coordinator) Ask(a *AskArgs, r *AskReply) error {
 					// Parse out the reduceId from this filename
 					// and get all of its peers
 					id := IdForIntermediate(k)
-					fmt.Println(id)
 					flist := IntermediatesFor(id)
-					fmt.Println(flist)
 
 					// Assign everyone in flist to a new reducetask
 					// with ID id
