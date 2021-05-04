@@ -68,7 +68,7 @@ func Worker(mapf func(string, string) []KeyValue,
 			flist := make([]int, r.ReduceTasks)
 
 			for i := 0; i < r.ReduceTasks; i++ {
-				f := p.Create(MkIntermediateName(r.TaskId, i), nine.ORDWR, nine.PUR|nine.PUW|nine.PGR|nine.PGW|nine.POR|nine.POX)
+				f := p.Create(MkIntermediateName(r.TaskId, i), nine.ORDWR, nine.PUR|nine.PUW|nine.PGR|nine.PGW|nine.POR|nine.POW)
 				if f < 0 {
 					log.Fatal("failed to create intermediate file")
 				}
