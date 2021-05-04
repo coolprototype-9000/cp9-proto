@@ -74,10 +74,13 @@ func Worker(mapf func(string, string) []KeyValue,
 			}
 			// Iterate through all keys in kva, using the hash
 			// to pick files to write to
+			fcnt := make(map[int]string)
 			for _, kv := range kva {
 				target := ihash(kv.Key) % r.ReduceTasks
-				s := fmt.Sprintf("%s %s\n", kv.Key, kv.Value)
-				p.Write(flist[target], s)
+				fcnt[target] += fmt.Sprintf("%s %s\n", kv.Key, kv.Value)
+			}
+			for fd, s := range fcnt {
+				p.Write(fd, s)
 			}
 
 			// Close every file
