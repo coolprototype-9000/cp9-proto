@@ -38,6 +38,7 @@ func ihash(key string) int {
 func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string, tp *client.Proc) {
 
+	setupCon()
 	p = tp
 
 	// Forever...
@@ -173,17 +174,22 @@ func Worker(mapf func(string, string) []KeyValue,
 // usually returns true.
 // returns false if something goes wrong.
 //
-func call(rpcname string, args interface{}, reply interface{}) bool {
+
+var c *rpc.Client
+
+func setupCon() {
 retryDial:
-	c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":5630")
+	nc, err := rpc.DialHTTP("tcp", "23.28.10.45"+":5630")
 	if err != nil {
 		fmt.Printf("Failed to dial: %s. Retrying in 5\n", err.Error())
 		time.Sleep(5 * time.Second)
 		goto retryDial
 	}
-	defer c.Close()
+	c = nc
 
-	err = c.Call(rpcname, args, reply)
+}
+func call(rpcname string, args interface{}, reply interface{}) bool {
+	err := c.Call(rpcname, args, reply)
 	if err == nil {
 		return true
 	}

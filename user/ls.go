@@ -33,7 +33,7 @@ func do(f string) int {
 		Printf("%s\t%s\t%d\t%d\n", st.Name, "fil", st.Size, st.Mode)
 		return 0
 	} else {
-		stats := dirread(fd)
+		stats := Dirread(fd)
 		for _, st := range stats {
 			disp := "fil"
 			if st.Q.Flags&nine.FDir > 0 {

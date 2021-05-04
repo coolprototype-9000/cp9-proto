@@ -62,6 +62,7 @@ func (c *Coordinator) Done() bool {
 
 func (c *Coordinator) Tell(a *TellArgs, r *TellReply) error {
 	c.lock.Lock()
+	fmt.Println("Got tell")
 
 	if c.state == Map {
 		// If our functionality has been superseded...
@@ -185,7 +186,9 @@ func (c *Coordinator) Ask(a *AskArgs, r *AskReply) error {
 					// Parse out the reduceId from this filename
 					// and get all of its peers
 					id := IdForIntermediate(k)
+					fmt.Println(id)
 					flist := IntermediatesFor(id)
+					fmt.Println(flist)
 
 					// Assign everyone in flist to a new reducetask
 					// with ID id
