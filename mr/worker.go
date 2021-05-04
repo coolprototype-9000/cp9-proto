@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/rpc"
 	"strings"
+	"time"
 
 	"github.com/coolprototype-9000/cp9-proto/client"
 	"github.com/coolprototype-9000/cp9-proto/nine"
@@ -170,9 +171,12 @@ func Worker(mapf func(string, string) []KeyValue,
 // returns false if something goes wrong.
 //
 func call(rpcname string, args interface{}, reply interface{}) bool {
+retryDial:
 	c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":5630")
 	if err != nil {
-		log.Fatal("dialing:", err)
+		fmt.Printf("Failed to dial: %s. Retrying in 5\n", err.Error())
+		time.Sleep(5 * time.Second)
+		goto retryDial
 	}
 	defer c.Close()
 
