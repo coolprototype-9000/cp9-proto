@@ -48,9 +48,12 @@ func (p *Proc) Rename(name string, newfname string) int {
 		p.errstr = "failed to evaluate name, no such file/dir?"
 		return -1
 	}
-	if fWstat(kc, &nine.Stat{
+
+	ns := nine.Stat{
 		Name: newfname,
-	}) != nil {
+	}
+
+	if err := fWstat(kc, &ns); err != nil {
 		p.errstr = err.Error()
 		return -1
 	}

@@ -199,6 +199,8 @@ func execCmd(args []string) {
 		mkdir(args...)
 	case "touch":
 		touch(args...)
+	case "rename":
+		rename(args...)
 	case "mrc":
 		mrc(args...)
 	case "mrw":

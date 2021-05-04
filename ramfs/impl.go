@@ -500,9 +500,26 @@ func (r *RamFs) Wstat(conId uint64, f nine.Fid, ns nine.Stat) error {
 	perms := r.checkPerms(id, fd.owner)
 	s := r.statTable[id]
 
+	// Name can be changed if write permission on the parent dir
+	p, err := r.getParent(id)
+	if err != nil {
+		// No parent? Can't set name
+		if ns.Name != "" {
+			return errors.New("can't rename directory wo/ parent")
+		}
+	}
+
+	if ns.Name != "" {
+		pperm := r.checkPerms(p, fd.owner)
+		if !pperm[1] {
+			return errors.New("permission denied to rename file")
+		}
+		s.Name = ns.Name
+	}
+
 	// ILLEGAL
-	if ns.Size != 0 || ns.DevType != 0 || ns.DevNo != 0 {
-		return errors.New("cannot modify kernel-use fields of Stat")
+	if ns.DevType != 0 || ns.DevNo != 0 {
+		return fmt.Errorf("cannot modify kernel-use fields of Stat: %d/%d/%d", ns.Size, ns.DevNo, ns.DevType)
 	} else if uint(ns.Q.Flags)+uint(ns.Q.Id)+uint(ns.Q.Version) != 0 {
 		return errors.New("cannot modify the QID")
 	}
