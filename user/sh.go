@@ -81,7 +81,7 @@ const (
 
 func sh() {
 	setupMapReduce()
-	setupConsFs()
+	// setupConsFs()
 
 	backupIn = p.Dup(0, -1)
 	backupOut = p.Dup(1, -1)
@@ -91,7 +91,7 @@ func sh() {
 	}
 
 	for {
-		cmd := p.Read(0, maxQt)
+		cmd := strings.TrimSuffix(p.Read(0, maxQt), "\n")
 		args := strings.Split(cmd, " ")
 		if len(args) == 0 {
 			Printf("no command received\n")
@@ -201,6 +201,6 @@ func execCmd(args []string) {
 	case "mrw":
 		mrw(args...)
 	default:
-		Printf("unknown command")
+		Printf("unknown command\n")
 	}
 }
