@@ -143,6 +143,7 @@ func (c *Coordinator) Ask(a *AskArgs, r *AskReply) error {
 	// This is crap for performance but this whole function is
 	// basically a critical section so
 	c.lock.Lock()
+	fmt.Println("Got ask")
 
 	r.ReduceTasks = c.nReduce
 	done := false

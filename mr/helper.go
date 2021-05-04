@@ -2,14 +2,13 @@ package mr
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/coolprototype-9000/cp9-proto/client"
+	"github.com/coolprototype-9000/cp9-proto/nine"
 )
 
 // Helper functions
@@ -23,15 +22,15 @@ import (
 var p *client.Proc
 
 func ReadFrom(fname string) string {
-	f, err := os.Open(fname)
-	if err != nil {
+	f := p.Open(fname, nine.OREAD)
+	if f < 0 {
 		log.Fatalf("failed to open %v for reading", fname)
 	}
-	content, err := ioutil.ReadAll(f)
-	if err != nil {
+	content := p.Read(f, ^uint32(0))
+	if content == "" {
 		log.Fatalf("failed to read %v", fname)
 	}
-	f.Close()
+	p.Close(f)
 
 	return string(content)
 }

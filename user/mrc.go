@@ -1,7 +1,6 @@
 package user
 
 import (
-	"os"
 	"time"
 
 	"github.com/coolprototype-9000/cp9-proto/mr"
@@ -15,7 +14,7 @@ func mrc(args ...string) {
 
 	Printf("Working")
 
-	m := mr.MakeCoordinator(os.Args[1:], 10, p)
+	m := mr.MakeCoordinator(args[1:], 10, p)
 	for !m.Done() {
 		Printf(".")
 		time.Sleep(time.Second)
