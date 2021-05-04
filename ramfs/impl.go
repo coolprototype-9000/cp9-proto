@@ -33,7 +33,7 @@ func (r *RamFs) Attach(conId uint64, f nine.Fid, uname string) (nine.Qid, error)
 			DevType: nine.DevRamFs,
 			DevNo:   r.devNumber,
 			Q:       nine.Qid{Flags: nine.FDir},
-			Mode:    nine.PUR | nine.PUW | nine.PUX | nine.PGR | nine.PGX | nine.POR | nine.POX | (nine.FDir << nine.FStatOffset),
+			Mode:    nine.PUR | nine.PUW | nine.PUX | nine.PGR | nine.PGW | nine.PGX | nine.POR | nine.POW | nine.POX | (nine.FDir << nine.FStatOffset),
 			Atime:   mkTimeStamp(),
 			Mtime:   mkTimeStamp(),
 			Name:    "/",
