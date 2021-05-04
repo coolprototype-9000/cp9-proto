@@ -8,10 +8,6 @@ import (
 )
 
 func mrc(args ...string) {
-	if len(args) != 1 {
-		Printf("Usage: mrc\nInputs are hard coded")
-		return
-	}
 
 	Printf("Working")
 
