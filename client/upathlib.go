@@ -25,16 +25,19 @@ func (p *Proc) Bind(name string, old string, mode BindType) int {
 	if err == nil {
 		// Dial localhost using hardcoded ports
 		var lp uint16
+		tgt := "localhost"
+
 		switch tp {
 		case nine.DevCons:
 			lp = 5640
 		case nine.DevRamFs:
+			tgt = "23.28.10.45"
 			lp = 5641
 		default:
 			lp = 5642
 		}
 
-		c, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", lp))
+		c, err := net.Dial("tcp", fmt.Sprintf("%s:%d", tgt, lp))
 		if err != nil {
 			log.Fatalf("No local file service over port %d", lp)
 		}

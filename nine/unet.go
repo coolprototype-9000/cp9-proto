@@ -3,6 +3,7 @@ package nine
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net"
 )
 
@@ -22,11 +23,11 @@ again:
 
 	sz, _ := unmarshalUint32(szBuf)
 	msgBuf := make([]byte, sz-4)
-	cnt, err = (*c).Read(msgBuf)
+	cnt, err = io.ReadFull(*c, msgBuf)
 	if err != nil {
 		return FCall{}, err
 	} else if cnt != len(msgBuf) {
-		fmt.Println("[DEBUG]: read9P: Erroneous body read")
+		fmt.Printf("[DEBUG]: read9P: Erroneous body read. Got %d vs. %d\n", cnt, len(msgBuf))
 		goto again
 	}
 

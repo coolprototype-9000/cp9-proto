@@ -30,10 +30,13 @@ func setupMapReduce() {
 			log.Fatal(p.Errstr())
 		}
 
+		Printf("created file, writing...")
+
 		ei := p.Write(fd, sc)
 		if ei < 0 {
 			log.Fatal(p.Errstr())
 		}
+		Printf("wrote\n")
 		p.Close(fd)
 	}
 }
