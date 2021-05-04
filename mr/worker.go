@@ -77,7 +77,7 @@ func Worker(mapf func(string, string) []KeyValue,
 			fcnt := make(map[int]string)
 			for _, kv := range kva {
 				target := ihash(kv.Key) % r.ReduceTasks
-				fcnt[target] += fmt.Sprintf("%s %s\n", kv.Key, kv.Value)
+				fcnt[flist[target]] += fmt.Sprintf("%s %s\n", kv.Key, kv.Value)
 			}
 			for fd, s := range fcnt {
 				p.Write(fd, s)
